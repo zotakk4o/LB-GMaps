@@ -20,9 +20,9 @@ class LB_GMaps_Settings_Handler {
 	public function register_settings_init() {
 		add_settings_section( $this->option_name, __( 'LB Google Maps', 'lb-gmaps' ), null, $this->submenu_slug );
 
-		add_settings_field( 'lg-gmaps-api-key', __( 'Google Maps API Key' ), array( $this, 'render_field' ), $this->submenu_slug, $this->option_name );
+		add_settings_field( 'lb-gmaps-api-key', __( 'Google Maps API Key' ), array( $this, 'render_field' ), $this->submenu_slug, $this->option_name );
 
-		register_setting( $this->option_name, 'lg-gmaps-api-key' );
+		register_setting( $this->option_name, 'lb-gmaps-api-key' );
 	}
 
 	public function create_settings_page() {
@@ -32,11 +32,9 @@ class LB_GMaps_Settings_Handler {
 	public function register_settings_page() {
 		?>
 		<form method="post" action="options.php">
-			<?php do_settings_sections( $this->submenu_slug ); ?>
-			<div class="submit-button">
-				<?php submit_button( __( 'Save Changes', 'dxcrm' )  , 'primary' ); ?>
-			</div>
 			<?php settings_fields( $this->option_name ) ?>
+			<?php do_settings_sections( $this->submenu_slug ); ?>
+			<?php submit_button( __( 'Save Changes', 'lb-gmaps' )  , 'primary' ); ?>
 		</form>
 		<?php
 	}
@@ -44,8 +42,7 @@ class LB_GMaps_Settings_Handler {
 	public function render_field() {
 		?>
 		<div class="setting-container">
-			<label for="api-key">Google Maps API Key</label>
-			<input type="text" id="api-key" name="api-key">
+			<input type="text" name="lb-gmaps-api-key" value="<?php echo get_option( 'lb-gmaps-api-key' ); ?>">
 		</div>
 		<?php
 	}
