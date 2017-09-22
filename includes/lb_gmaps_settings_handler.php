@@ -30,7 +30,6 @@ class LB_GMaps_Settings_Handler {
 	}
 
 	public function register_settings_page() {
-
 		?>
 		<form method="post" action="options.php">
 			<?php do_settings_sections( $this->submenu_slug ); ?>

@@ -21,6 +21,8 @@ class LB_GMaps {
 	public function register_custom_post_type() {
 		$this->include_file( 'includes', 'lb_gmaps_post_type' );
 		new LB_GMaps_Post_Type();
+
+		$this->register_settings();
 	}
 
 	public function register_settings() {
