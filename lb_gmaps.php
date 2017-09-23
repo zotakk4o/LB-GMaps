@@ -11,35 +11,34 @@ class LB_GMaps {
 
 	public function __construct() {
 		$this->register_constants();
+		$this->register_helper();
 		$this->register_custom_post_type();
+		$this->register_metabox_handler();
 	}
 
-	public function register_constants() {
+	private function register_constants() {
 		include_once dirname( __FILE__ ) . '/includes/lb_gmaps_constants.php';
 	}
 
-	public function register_custom_post_type() {
-		$this->include_file( 'includes', 'lb_gmaps_post_type' );
+	private function register_custom_post_type() {
+		LB_GMaps_Helper::include_file( 'includes/lb_gmaps_post_type' );
 		new LB_GMaps_Post_Type();
 
 		$this->register_settings();
 	}
 
-	public function register_settings() {
-		$this->include_file( 'includes', 'lb_gmaps_settings_handler' );
+	private function register_settings() {
+		LB_GMaps_Helper::include_file( 'includes/lb_gmaps_settings_handler' );
 		new LB_GMaps_Settings_Handler();
 	}
 
-	public function include_file( $folder, $file_name ) {
-		switch ( $folder ) {
-			case 'assets':
-				//TODO: INCLUDE ASSETS
-				return true;
-			case 'includes':
-				return include_once LB_GMAPS_INCLUDES . "/$file_name.php";
-			default:
-				return false;
-		}
+	private function register_metabox_handler() {
+		LB_GMaps_Helper::include_file( 'includes/lb_gmaps_metabox_handler' );
+		new LB_GMaps_Metabox_Handler();
+	}
+
+	private function register_helper() {
+		include_once dirname( __FILE__ ) . '/includes/lb_gmaps_helper.php';
 	}
 
 }
