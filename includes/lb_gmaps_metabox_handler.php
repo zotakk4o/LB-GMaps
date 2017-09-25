@@ -1,10 +1,12 @@
 <?php
 
 class LB_GMaps_Metabox_Handler {
+	private $ajaxer;
 
 	public function __construct() {
 		$this->register_helper();
 		$this->add_hooks();
+		$this->register_ajaxer();
 	}
 
 	private function add_hooks() {
@@ -23,16 +25,29 @@ class LB_GMaps_Metabox_Handler {
 		LB_GMaps_Helper::include_file( 'includes/metabox/lb_gmaps_metabox' );
 	}
 
-	public function enqueue_admin_scripts() {
+	public function enqueue_admin_scripts( $hook ) {
 		global $post_type;
-		if( LB_GMAPS_POST_TYPE === $post_type && get_option( LB_GMAPS_API_KEY ) ) {
+		global $post;
+
+		if( LB_GMAPS_POST_TYPE === $post_type && get_option( LB_GMAPS_API_KEY ) && strpos( $hook, 'post' ) !== false ) {
+			$map_data = $this->get_ajaxer()->get_db_handler()->get_row_by_post_id( $this->get_ajaxer()->get_db_handler()->get_maps_table_name(), $post->ID );
+			$markers_data = $this->get_ajaxer()->get_db_handler()->get_rows_by_post_id( $this->get_ajaxer()->get_db_handler()->get_markers_table_name(), $post->ID );
+
 			wp_register_script( 'lb-gmaps-live-preview', LB_GMAPS_ASSETS . 'js/lb_gmaps_live_preview.js' );
-			wp_localize_script( 'lb-gmaps-live-preview', 'views', array( 'dialogBox' => file_get_contents(  LB_GMAPS_VIEWS . 'lb_gmaps_marker_dialog.php' ) ) );
+			wp_localize_script( 'lb-gmaps-live-preview', 'views', array( 'dialogBox' => file_get_contents(  LB_GMAPS_VIEWS . 'lb_gmaps_marker_dialog.php' ), 'form' => file_get_contents(  LB_GMAPS_VIEWS . 'lb_gmaps_marker_form.php' ) ) );
+			wp_localize_script( 'lb-gmaps-live-preview', 'post', array( 'ID' => $post->ID ) );
+			wp_localize_script( 'lb-gmaps-live-preview', 'admin', array( 'ajaxURL' => admin_url( 'admin-ajax.php', ( is_ssl() ? 'https' : 'http' ) ) ) );
+			wp_localize_script( 'lb-gmaps-live-preview', 'data', array( 'map' => $map_data, 'markers' => $markers_data ) );
 			wp_enqueue_script( 'lb-gmaps-live-preview' );
 			wp_enqueue_script( 'lb-google-map', 'https://maps.googleapis.com/maps/api/js?key=' . get_option( LB_GMAPS_API_KEY ) . '&libraries=places&callback=initMap', array( 'lb-gmaps-live-preview' ) );
 
 			wp_enqueue_style( 'lb-gmaps-metabox', LB_GMAPS_ASSETS . 'css/lb_gmaps_metabox.css' );
 		}
+	}
+
+	public function register_ajaxer() {
+		LB_GMaps_Helper::include_file( 'includes/lb_gmaps_ajaxer' );
+		$this->set_ajaxer( new LB_GMaps_Ajaxer() );
 	}
 
 	public function add_script_defer( $tag, $handle ) {
@@ -54,4 +69,22 @@ class LB_GMaps_Metabox_Handler {
 	private function register_helper() {
 		include_once dirname( __FILE__ ) . '/lb_gmaps_helper.php';
 	}
+
+	/**
+	 * @return LB_GMaps_Ajaxer
+	 */
+	public function get_ajaxer() {
+		return $this->ajaxer;
+	}
+
+	/**
+	 * @param mixed $ajaxer
+	 */
+	public function set_ajaxer( $ajaxer ) {
+		$this->ajaxer = $ajaxer;
+	}
+
+
+
+
 }

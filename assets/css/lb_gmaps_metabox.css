@@ -7,7 +7,8 @@
     width: 50%;
     float: left;
 }
-#lb-gmap-marker-dialog {
+#lb-gmap-marker-dialog,
+#lb-gmap-marker-form {
     z-index: 999;
     padding: 5px;
     border: 3px solid #417DF1;
@@ -22,20 +23,35 @@
     text-align: center;
 }
 
-#lb-gmap-marker-dialog .buttons-group {
+#lb-gmap-marker-form {
+    width: 30%;
+    height: 25%;
+    right: 10%;
+}
+
+.lb-gmap-marker-form-group input,
+.lb-gmap-marker-form-group textarea {
+    width: 95%;
+    resize: none;
+}
+
+#lb-gmap-marker-dialog .buttons-group,
+#lb-gmap-marker-form .buttons-group{
     position: absolute;
     bottom: 5px;
     width: 95%;
 }
 
-#lb-gmap-marker-dialog button {
+#lb-gmap-marker-dialog button,
+#lb-gmap-marker-form button{
     background-color: #417DF1;
     color: #FFF;
     border: 1px solid #417DF1;
     border-radius: 40%;
 }
 
-#lb-gmap-marker-dialog .buttons-group button:hover {
+#lb-gmap-marker-dialog .buttons-group button:hover,
+#lb-gmap-marker-form .buttons-group button:hover{
     cursor: pointer;
 }
 
@@ -47,7 +63,7 @@
     float: right;
 }
 
-#lb-gmap-fields .lb-gmap-form-group input {
+#lb-gmap-fields .lb-gmap-form-group input[type=text] {
     width: 95%;
 }
 #lb-gmap-live-preview {
