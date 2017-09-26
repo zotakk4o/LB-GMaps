@@ -1,4 +1,4 @@
-<div id="lb-gmap-marker-dialog">
+<div id="lb-gmaps-marker-dialog">
 	<div class="message">
 		Do you want to add a marker on the map for this place ?
 	</div>

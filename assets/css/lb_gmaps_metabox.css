@@ -1,14 +1,14 @@
-#lb-gmap-metabox {
+#lb-gmaps-metabox {
     width: 100%;
     height: 600px;
     margin-top: 20px;
 }
-#lb-gmap-fields {
+#lb-gmaps-fields {
     width: 50%;
     float: left;
 }
-#lb-gmap-marker-dialog,
-#lb-gmap-marker-form {
+#lb-gmaps-marker-dialog,
+#lb-gmaps-marker-form {
     z-index: 999;
     padding: 5px;
     border: 3px solid #417DF1;
@@ -23,50 +23,50 @@
     text-align: center;
 }
 
-#lb-gmap-marker-form {
+#lb-gmaps-marker-form {
     width: 30%;
     height: 25%;
     right: 10%;
 }
 
-.lb-gmap-marker-form-group input,
-.lb-gmap-marker-form-group textarea {
+.lb-gmaps-marker-form-group input,
+.lb-gmaps-marker-form-group textarea {
     width: 95%;
     resize: none;
 }
 
-#lb-gmap-marker-dialog .buttons-group,
-#lb-gmap-marker-form .buttons-group{
+#lb-gmaps-marker-dialog .buttons-group,
+#lb-gmaps-marker-form .buttons-group{
     position: absolute;
     bottom: 5px;
     width: 95%;
 }
 
-#lb-gmap-marker-dialog button,
-#lb-gmap-marker-form button{
+#lb-gmaps-marker-dialog button,
+#lb-gmaps-marker-form button{
     background-color: #417DF1;
     color: #FFF;
     border: 1px solid #417DF1;
     border-radius: 40%;
 }
 
-#lb-gmap-marker-dialog .buttons-group button:hover,
-#lb-gmap-marker-form .buttons-group button:hover{
+#lb-gmaps-marker-dialog .buttons-group button:hover,
+#lb-gmaps-marker-form .buttons-group button:hover{
     cursor: pointer;
 }
 
-#lb-gmap-marker-dialog #yes {
+#lb-gmaps-marker-dialog #yes {
     float: left;
 }
 
-#lb-gmap-marker-dialog #no {
+#lb-gmaps-marker-dialog #no {
     float: right;
 }
 
-#lb-gmap-fields .lb-gmap-form-group input[type=text] {
+#lb-gmaps-fields .lb-gmaps-form-group input[type=text] {
     width: 95%;
 }
-#lb-gmap-live-preview {
+#lb-gmaps-live-preview {
     width: 50%;
     height: 90%;
     float: right;

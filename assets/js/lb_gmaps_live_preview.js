@@ -22,13 +22,31 @@ function initMap() {
         for ( var i = 0; i < data.markers.length; i++ ) {
             if( 'object' === typeof data.markers[ i ] ) {
                 var marker = new google.maps.Marker({
+                    name: data.markers[ i ].name,
+                    description: data.markers[ i ].content,
                     map: map
                 });
                 marker.setPosition( {
                     lat: parseFloat( data.markers[ i ].lat ),
                     lng: parseFloat( data.markers[ i ].lng )
                 } );
-
+                var content = $( views.infoBox );
+                if( null !== marker.name && null !== marker.description ) {
+                    if( null !== marker.name ) {
+                        content.find( '#lb-gmaps-marker-name' ).text( marker.name );
+                    }
+                    if( null !== marker.description ) {
+                        content.find( '#lb-gmaps-marker-description' ).text( marker.description );
+                    }
+                    var textContent = content[0].outerHTML;
+                    var infowindow = new google.maps.InfoWindow();
+                    google.maps.event.addListener( marker, 'click', ( function( marker, content, infowindow ) {
+                        return function() {
+                            infowindow.setContent( content );
+                            infowindow.open( map, marker );
+                        };
+                    } )( marker, textContent, infowindow) );
+                }
             }
         }
     }
@@ -60,6 +78,7 @@ function initMap() {
             markers.push( markerObject );
 
             var markerForm = $( views.form );
+
             markerForm.insertAfter( '#lb-gmap-fields' );
 
             $( '#cancel-button' ).on( 'click', function () {

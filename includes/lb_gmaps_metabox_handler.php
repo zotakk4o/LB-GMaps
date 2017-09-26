@@ -34,10 +34,23 @@ class LB_GMaps_Metabox_Handler {
 			$markers_data = $this->get_ajaxer()->get_db_handler()->get_rows_by_post_id( $this->get_ajaxer()->get_db_handler()->get_markers_table_name(), $post->ID );
 
 			wp_register_script( 'lb-gmaps-live-preview', LB_GMAPS_ASSETS . 'js/lb_gmaps_live_preview.js' );
-			wp_localize_script( 'lb-gmaps-live-preview', 'views', array( 'dialogBox' => file_get_contents(  LB_GMAPS_VIEWS . 'lb_gmaps_marker_dialog.php' ), 'form' => file_get_contents(  LB_GMAPS_VIEWS . 'lb_gmaps_marker_form.php' ) ) );
-			wp_localize_script( 'lb-gmaps-live-preview', 'post', array( 'ID' => $post->ID ) );
-			wp_localize_script( 'lb-gmaps-live-preview', 'admin', array( 'ajaxURL' => admin_url( 'admin-ajax.php', ( is_ssl() ? 'https' : 'http' ) ) ) );
-			wp_localize_script( 'lb-gmaps-live-preview', 'data', array( 'map' => $map_data, 'markers' => $markers_data ) );
+			wp_localize_script( 'lb-gmaps-live-preview', 'views',
+				array( 'dialogBox' => $this->get_content_of_view( 'marker', 'dialog' ),
+				       'form' => $this->get_content_of_view( 'marker', 'form' ),
+				       'infoBox' => $this->get_content_of_view( 'marker', 'info' )
+				)
+			);
+			wp_localize_script( 'lb-gmaps-live-preview', 'post',
+				array( 'ID' => $post->ID )
+			);
+			wp_localize_script( 'lb-gmaps-live-preview', 'admin',
+				array( 'ajaxURL' => admin_url( 'admin-ajax.php', ( is_ssl() ? 'https' : 'http' ) ) )
+			);
+			wp_localize_script( 'lb-gmaps-live-preview', 'data',
+				array( 'map' => $map_data,
+				       'markers' => $markers_data
+				)
+			);
 			wp_enqueue_script( 'lb-gmaps-live-preview' );
 			wp_enqueue_script( 'lb-google-map', 'https://maps.googleapis.com/maps/api/js?key=' . get_option( LB_GMAPS_API_KEY ) . '&libraries=places&callback=initMap', array( 'lb-gmaps-live-preview' ) );
 
@@ -68,6 +81,15 @@ class LB_GMaps_Metabox_Handler {
 
 	private function register_helper() {
 		include_once dirname( __FILE__ ) . '/lb_gmaps_helper.php';
+	}
+
+	private function get_content_of_view( $view_type, $view_name ) {
+		switch ( $view_type ) {
+			case 'marker':
+				return file_get_contents( LB_GMAPS_VIEWS . "lb_gmaps_marker_$view_name.php" );
+			default:
+				return __( 'View Type Not Found', 'lb-gmaps' );
+		}
 	}
 
 	/**
