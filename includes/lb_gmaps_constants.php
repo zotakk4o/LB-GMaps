@@ -18,3 +18,4 @@ if( ! defined( 'LB_GMAPS_VIEWS' ) ) {
 if( ! defined( 'LB_GMAPS_API_KEY' ) ) {
 	define( 'LB_GMAPS_API_KEY', 'lb-gmaps-api-key' );
 }
+?>

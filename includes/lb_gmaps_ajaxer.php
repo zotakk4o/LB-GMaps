@@ -42,8 +42,11 @@ class LB_GMaps_Ajaxer {
 
 	public function save_marker_data() {
 		if( isset( $_POST['marker'] ) && ! empty( $_POST['marker'] ) ) {
-			$this->get_db_handler()->save_marker( $_POST['marker'] );
+			$marker_args = $_POST['marker'];
+			$marker_args['uniqueness'] = md5( "{$marker_args['lat']}{$marker_args['lng']}" );
+			$this->get_db_handler()->save_marker( $marker_args );
 		}
+		wp_die();
 	}
 
 	/**
