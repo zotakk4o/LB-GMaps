@@ -31,45 +31,14 @@ function initMap() {
                     lat: parseFloat( data.markers[ i ].lat ),
                     lng: parseFloat( data.markers[ i ].lng )
                 } );
-                var content = $( views.infoBox );
-                content.find( '#lb-gmaps-marker-description' ).append( '<div id="edit-lb-gmaps-marker">Edit Marker Info</div>' );
-                if( null !== marker.name && null !== marker.content ) {
-                    if( null !== marker.name ) {
-                        content.find( '#lb-gmaps-marker-name' ).text( marker.name );
-                    }
-                    if( null !== marker.content ) {
-                        content.find( '#lb-gmaps-marker-description p' ).text( marker.content );
-                    }
-                    var textContent = content[0].outerHTML;
-                    var infowindow = new google.maps.InfoWindow( {
-                        maxWidth: 350
-                    } );
-
-                    styleInfowindow( infowindow );
-
-                    google.maps.event.addListener( marker, 'click', ( function( marker, content, infowindow ) {
-                        return function() {
-                            infowindow.setContent( content );
-                            infowindow.open( map, marker );
-
-                            $( '#edit-lb-gmaps-marker' ).on( 'click', function (  ) {
-                                $( '.gm-style-iw' ).parent().remove();
-                                var markerObject = {
-                                    uniqueness: marker.uniqueness,
-                                    post_id: post.ID,
-                                    lat: marker.position.lat(),
-                                    lng: marker.position.lng(),
-                                    name: marker.name,
-                                    content: marker.content
-                                };
-                                showMarkerForm( markerObject );
-                            } );
-                        };
-                    } )( marker, textContent, infowindow) );
-                }
+                displayInfoWindow( map, marker );
             }
         }
     }
+
+    map.addListener( 'click', function ( event ) {
+        createMarker( map, event.latLng );
+    } );
 
     var input = document.getElementById( 'lb-gmaps-map-markers' );
 
@@ -82,20 +51,8 @@ function initMap() {
         }
 
         $( '#yes' ).on( 'click', function () {
-            var marker = new google.maps.Marker({
-                map: map
-            });
-
-            marker.setPosition( place.geometry.location);
-            dialog.remove();
-            var markerObject = {
-                post_id: post.ID,
-                lat: marker.position.lat(),
-                lng: marker.position.lng()
-            };
-            showMarkerForm( markerObject );
-            markers.push( markerObject );
-
+           dialog.remove();
+           createMarker( map, place.geometry.location );
         } );
         $( '#no' ).on( 'click',function () {
             dialog.remove();
@@ -147,6 +104,7 @@ function initMap() {
 
             // Reference to the DIV that wraps the bottom of infowindow
             var iwOuter = $('.gm-style-iw');
+            iwOuter.parent().css({'width': iwOuter.css('width'), 'height': iwOuter.css('height') });
 
             /* Since this div is in a position prior to .gm-div style-iw.
              * We use jQuery and create a iwBackground variable,
@@ -160,15 +118,6 @@ function initMap() {
             // Removes white background DIV
             iwBackground.children(':nth-child(4)').css({'display' : 'none'});
 
-            // Moves the infowindow 115px to the right.
-            iwOuter.parent().parent().css({left: '115px'});
-
-            // Moves the shadow of the arrow 76px to the left margin.
-            iwBackground.children(':nth-child(1)').attr('style', function(i,s){ return s + 'left: 40px !important;'});
-
-            // Moves the arrow 76px to the left margin.
-            iwBackground.children(':nth-child(3)').attr('style', function(i,s){ return s + 'left: 40px !important;'});
-
             // Changes the desired tail shadow color.
             iwBackground.children(':nth-child(3)').find('div').children().css({'box-shadow': 'rgba(72, 181, 233, 0.6) 0px 1px 6px', 'z-index' : '1'});
 
@@ -176,7 +125,7 @@ function initMap() {
             var iwCloseBtn = iwOuter.next();
 
             // Apply the desired effect to the close button
-            iwCloseBtn.css({opacity: '1', right: '38px', top: '3px', border: '7px solid #417DF1', 'border-radius': '13px', 'box-shadow': '0 0 5px #3990B9'});
+            iwCloseBtn.css({opacity: '1', top: '0' , right: '-35px', border: '7px solid #417DF1', 'border-radius': '13px', 'box-shadow': '0 0 5px #3990B9'});
 
             // If the content of infowindow not exceed the set maximum height, then the gradient is removed.
             if($('#lb-gmaps-marker-description').height() < 140){
@@ -190,26 +139,35 @@ function initMap() {
         });
     }
 
-    function showMarkerForm( markerObject ) {
+    function showMarkerForm( map, marker ) {
+        var markerObject = {
+            uniqueness: marker.uniqueness,
+            post_id: post.ID,
+            lat: marker.position.lat(),
+            lng: marker.position.lng()
+        };
+
         var markerForm = $( views.form );
 
-        if( markerObject.hasOwnProperty( 'name' ) && null !== markerObject.name.length ) {
-            markerForm.find( '#marker_name' ).val( markerObject.name );
+        if( marker.hasOwnProperty( 'name' ) ) {
+            markerForm.find( '#marker_name' ).val( marker.name );
         }
-        if( markerObject.hasOwnProperty( 'content' ) && null !== markerObject.content.length ) {
-            markerForm.find( '#marker_description' ).val( markerObject.content );
+        if( marker.hasOwnProperty( 'content' ) ) {
+            markerForm.find( '#marker_description' ).val( marker.content );
         }
+
 
         markerForm.insertAfter( '#lb-gmaps-fields' );
 
         $( '#cancel-button' ).on( 'click', function () {
             markerForm.remove();
+            displayInfoWindow( map, marker );
         } );
 
         $( '#save-button' ).on( 'click', function () {
             markerObject.name = $.trim( $( '#marker_name' ).val() );
             markerObject.content = $.trim( $( '#marker_description' ).val() );
-
+            markerForm.remove();
             $.ajax( {
                 type: "POST",
                 url: admin.ajaxURL,
@@ -217,10 +175,97 @@ function initMap() {
                     action: 'save_marker_data',
                     marker: markerObject
                 }
-            } ).then( function () {
-                markerForm.remove();
+            } ).then( function (data) {
+                if( data ) {
+                    marker.name = markerObject.name;
+                    marker.content = markerObject.content;
+                    displayInfoWindow( map, marker );
+                }
+            } );
+        } );
+    }
+
+    function addMarkerClickListener( map, marker, content, infoWindow ) {
+        google.maps.event.clearListeners( marker, 'click' );
+        google.maps.event.addListener( marker, 'click', ( function( marker, content, infoWindow ) {
+            return function() {
+                if( undefined !== infoWindow && undefined !== infoWindow && undefined !== content ) {
+                    infoWindow.setContent( content );
+                    if( undefined === infoWindow.getMap() || null === infoWindow.getMap() ) {
+                        infoWindow.open( map, marker );
+                    }
+
+                    $( '#edit-lb-gmaps-marker' ).on( 'click', function (  ) {
+                        $( '.gm-style-iw' ).parent().remove();
+                        showMarkerForm( map, marker );
+                    } );
+
+                    $(' #delete-lb-gmaps-marker ').on( 'click', function () {
+                        $( '.gm-style-iw' ).parent().remove();
+                        google.maps.event.clearListeners( marker, 'click' );
+                        var markerObject = {
+                            uniqueness: marker.uniqueness,
+                            lat: marker.position.lat(),
+                            lng: marker.position.lng()
+                        };
+                        $.ajax( {
+                            type: 'POST',
+                            url: admin.ajaxURL,
+                            data: {
+                                action: 'delete_marker_data',
+                                marker: markerObject
+                            }
+                        } ).then( function ( data ) {
+                            if( data ) {
+                                marker.setMap( null );
+                            }
+                        } )
+                    } )
+                } else {
+                    showMarkerForm( map, marker );
+                }
+
+            };
+        } )( marker, content, infoWindow) );
+    }
+
+    function displayInfoWindow( map, marker ) {
+        var content = $( views.infoBox );
+        content.find( '#lb-gmaps-marker-description' ).append( '<span id="edit-lb-gmaps-marker">Edit Marker Info</span>' );
+        content.find( '#lb-gmaps-marker-description' ).append( '<span id="delete-lb-gmaps-marker">Delete Marker</span>' );
+        if( null !== marker.name && null !== marker.content && undefined !== marker.name && undefined !== marker.content) {
+            if( null !== marker.name ) {
+                content.find( '#lb-gmaps-marker-name p' ).text( marker.name );
+            }
+            if( null !== marker.content ) {
+                content.find( '#lb-gmaps-marker-description p' ).text( marker.content );
+            }
+            var textContent = content[0].outerHTML;
+            var infoWindow = new google.maps.InfoWindow( {
+                maxWidth: 300
             } );
 
-        } );
+            styleInfowindow( infoWindow );
+            addMarkerClickListener( map, marker, textContent, infoWindow );
+        } else {
+            addMarkerClickListener( map, marker );
+        }
+
+    }
+
+    function createMarker( map, location ) {
+        var marker = new google.maps.Marker({
+            map: map
+        });
+
+        marker.setPosition( location );
+
+        var markerObject = {
+            post_id: post.ID,
+            lat: marker.position.lat(),
+            lng: marker.position.lng()
+        };
+        showMarkerForm( map, marker );
+        markers.push( markerObject );
     }
 }

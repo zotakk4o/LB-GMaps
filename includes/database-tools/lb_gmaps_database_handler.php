@@ -50,6 +50,10 @@ class LB_GMaps_Database_Handler {
 		return $this->get_database()->replace( $this->get_maps_table_name(), $args );
 	}
 
+	public function delete( $table, $where ) {
+		return $this->get_database()->delete( $table, $where );
+	}
+
 	public function get_row_by_post_id( $table, $id ) {
 		return $this->get_database()->get_row( "SELECT * FROM $table WHERE post_id = $id", OBJECT );
 	}
