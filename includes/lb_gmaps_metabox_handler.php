@@ -51,6 +51,10 @@ class LB_GMaps_Metabox_Handler {
 				       'markers' => $markers_data
 				)
 			);
+			wp_localize_script( 'lb-gmaps-live-preview', 'errors',
+				array( 'emptyField' => __( 'Please fill in this field.' ) )
+			);
+
 			wp_enqueue_script( 'lb-gmaps-live-preview' );
 			wp_enqueue_script( 'lb-google-map', 'https://maps.googleapis.com/maps/api/js?key=' . get_option( LB_GMAPS_API_KEY ) . '&libraries=places&callback=initMap', array( 'lb-gmaps-live-preview' ) );
 

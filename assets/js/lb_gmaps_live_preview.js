@@ -155,9 +155,14 @@ function initMap() {
         if( marker.hasOwnProperty( 'content' ) ) {
             markerForm.find( '#marker_description' ).val( marker.content );
         }
+        if( ! marker.hasOwnProperty( 'name' ) && ! marker.hasOwnProperty( 'content' ) ) {
+            $( '<button type="button" id="delete-button">Delete Marker</button>' ).insertAfter( markerForm.find( '#save-button' ) );
+        }
 
 
         markerForm.insertAfter( '#lb-gmaps-fields' );
+
+        validateMarkerForm( markerForm );
 
         $( '#cancel-button' ).on( 'click', function () {
             markerForm.remove();
@@ -183,6 +188,11 @@ function initMap() {
                 }
             } );
         } );
+
+        $( '#delete-button' ).on( 'click', function () {
+            marker.setMap( null );
+            markerForm.remove();
+        } )
     }
 
     function addMarkerClickListener( map, marker, content, infoWindow ) {
@@ -267,5 +277,37 @@ function initMap() {
         };
         showMarkerForm( map, marker );
         markers.push( markerObject );
+    }
+
+    function validateMarkerForm( markerForm ) {
+        var formFields = markerForm.find( '.marker-field' );
+        for ( var i = 0; i < formFields.length; i++ ) {
+            var field = $( formFields[ i ] );
+            validateField( field, false );
+            field.blur( function ( e ) {
+                validateField( $( e.target ), true );
+            } );
+        }
+
+        function handleSaveButton() {
+            if( formFields.length === $( '.valid' ).length ) {
+                $( '#save-button' ).prop( 'disabled', false );
+            } else {
+                $( '#save-button' ).prop( 'disabled', true );
+            }
+        }
+
+        function validateField( field, withErrors ) {
+            if( '' === field.val() ) {
+                field.removeClass( 'valid' );
+                if( ! field.siblings( '.marker-error' ).length && withErrors ) {
+                    field.parent().append( '<div class="marker-error">' + errors.emptyField + '</div>' );
+                }
+            } else {
+                field.addClass( 'valid' );
+                field.siblings( '.marker-error' ).remove();
+            }
+            handleSaveButton();
+        }
     }
 }
