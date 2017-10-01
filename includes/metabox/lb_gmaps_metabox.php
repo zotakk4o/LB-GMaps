@@ -9,10 +9,6 @@
 			<input type="text" name="lb-gmaps-map-markers" id="lb-gmaps-map-markers">
 		</div>
 		<div class="lb-gmaps-form-group">
-			<label for="lb-gmaps-map-zoom"><?php echo __( 'Zoom', 'lb-gmaps' ) ?></label>
-			<input type="number" name="lb-gmaps-map-zoom" id="lb-gmaps-map-zoom" placeholder="<?php echo __( 'Enter map zoom', 'lb-gmaps' ) ?>">
-		</div>
-		<div class="lb-gmaps-form-group">
 			<label class="map-controls" for="lb-gmaps-map-scale-control"><?php echo __( 'Scale Control', 'lb-gmaps' ) ?></label>
 			<input type="checkbox" name="lb-gmaps-map-scale-control" id="lb-gmaps-map-scale-control">
 		</div>

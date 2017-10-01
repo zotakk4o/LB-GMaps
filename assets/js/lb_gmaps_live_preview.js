@@ -3,9 +3,6 @@ if( undefined === $ ) {
 }
 function initMap() {
     var markers = [];
-    var mapAttributes = {
-        post_id: post.ID
-    };
     if( null !== data.map && 'object' === typeof data.map ) {
         var map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), {
             center: { lat: parseFloat( data.map.lat ), lng: parseFloat( data.map.lng ) },
@@ -85,9 +82,9 @@ function initMap() {
     });
 
     $( '#publish' ).on( 'click', function ( e ) {
-        mapAttributes.lat = map.getCenter().lat();
-        mapAttributes.lng = map.getCenter().lng();
-        mapAttributes.zoom = map.getZoom();
+        var mapAttributes = getMapAttributes( map );
+        console.log(mapAttributes);
+        e.preventDefault();
         $.ajax( {
             type: "POST",
             url: admin.ajaxURL,
@@ -310,4 +307,32 @@ function validateMarkerForm( markerForm ) {
         }
         handleSaveButton();
     }
+}
+
+function getMapAttributes( map ) {
+    var mapAttributes = {};
+    mapAttributes.post_id = post.ID;
+    mapAttributes.lat = map.getCenter().lat();
+    mapAttributes.lng = map.getCenter().lng();
+    mapAttributes.zoom = map.getZoom();
+    if( map.scaleControl ) {
+        mapAttributes.scaleControl = map.scaleControl;
+    }
+    if( map.zoomControl ) {
+        mapAttributes.zoomControl = map.zoomControl;
+    }
+    if( map.fullscreenControl ) {
+        mapAttributes.fullscreenControl = map.fullscreenControl;
+    }
+    if( map.rotateControl ) {
+        mapAttributes.rotateControl = map.rotateControl;
+    }
+    if( map.streetViewControl ) {
+        mapAttributes.streetViewControl = map.streetViewControl;
+    }
+    if( map.mapTypeControlOptions ) {
+        mapAttributes.mapTypeControlOptions = map.mapTypeControlOptions;
+    }
+
+    return mapAttributes;
 }

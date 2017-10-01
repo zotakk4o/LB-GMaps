@@ -19,20 +19,25 @@ class LB_GMaps_Database_Handler {
 		$charset_collate = $this->get_database()->get_charset_collate();
 
 		$markers_sql = "CREATE TABLE IF NOT EXISTS {$this->get_markers_table_name()} (
-			uniqueness VARCHAR(150) NOT NULL,
+			uniqueness VARCHAR(100) NOT NULL,
 			post_id mediumint(9) NOT NULL,
-			lng VARCHAR(250) NOT NULL,
-			lat VARCHAR(250) NOT NULL,
-			name VARCHAR(250) NULL,
+			lng VARCHAR(100) NOT NULL,
+			lat VARCHAR(100) NOT NULL,
+			name VARCHAR(100) NULL,
 			content text NULL,
 			PRIMARY KEY (uniqueness)
 		) $charset_collate;";
 
 		$maps_sql = "CREATE TABLE IF NOT EXISTS {$this->get_maps_table_name()} (
 			post_id mediumint(9) NOT NULL,
-			lng VARCHAR(250) NOT NULL,
-			lat VARCHAR(250) NOT NULL,
-			zoom varchar(250) NOT NULL,
+			lng VARCHAR(100) NOT NULL,
+			lat VARCHAR(100) NOT NULL,
+			zoom VARCHAR(100) NOT NULL,
+			scale_control VARCHAR(100) NULL,
+			street_view_control VARCHAR(100) NULL,
+			rotate_control VARCHAR(100) NULL,
+			fullscreen_control VARCHAR(100) NULL,
+			map_types VARCHAR(100) NULL,
 			PRIMARY KEY (post_id)
 		) $charset_collate;";
 
