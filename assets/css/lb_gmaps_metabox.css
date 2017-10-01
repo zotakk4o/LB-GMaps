@@ -1,12 +1,27 @@
 #lb-gmaps-metabox {
     width: 100%;
-    height: 600px;
+    height: 800px;
     margin-top: 20px;
+    overflow: hidden;
 }
+
 #lb-gmaps-fields {
     width: 50%;
+    height: 90%;
     float: left;
+    overflow-y: scroll;
+    overflow-x: hidden;
 }
+
+#lb-gmaps-fields::-webkit-scrollbar,
+#lb-gmaps-fields #lb-gmaps-map-types::-webkit-scrollbar {
+    display: none;
+}
+
+.lb-gmaps-form-group {
+    margin: 10px 0;
+}
+
 #lb-gmaps-marker-dialog,
 #lb-gmaps-marker-form {
     z-index: 999;
@@ -37,8 +52,18 @@
     cursor: not-allowed !important;
 }
 
+.lb-gmaps-form-group select {
+    width: 35%;
+}
+
+.lb-gmaps-form-group label.map-controls {
+    display: inline-block;
+    width: 20%;
+}
+
 .lb-gmaps-marker-form-group input,
-.lb-gmaps-marker-form-group textarea {
+.lb-gmaps-marker-form-group textarea,
+.lb-gmaps-form-group input:not([type=checkbox]) {
     width: 95%;
     resize: none;
 }
