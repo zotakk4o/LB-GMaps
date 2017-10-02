@@ -4,10 +4,7 @@ if( undefined === $ ) {
 function initMap() {
     var markers = [];
     if( null !== data.map && 'object' === typeof data.map ) {
-        var map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), {
-            center: { lat: parseFloat( data.map.lat ), lng: parseFloat( data.map.lng ) },
-            zoom: parseFloat( data.map.zoom )
-        });
+        var map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), parseMapData( data.map ) );
     } else {
         var map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), {
             center: {lat: 45.40338, lng: 10.17403},
@@ -15,19 +12,14 @@ function initMap() {
         });
     }
 
+    postFormHandler( map );
+
     if( 0 !== data.markers.length ) {
         for ( var i = 0; i < data.markers.length; i++ ) {
             if( 'object' === typeof data.markers[ i ] ) {
-                var marker = new google.maps.Marker({
-                    uniqueness: data.markers[ i ].uniqueness,
-                    name: data.markers[ i ].name,
-                    content: data.markers[ i ].content,
-                    map: map
-                });
-                marker.setPosition( {
-                    lat: parseFloat( data.markers[ i ].lat ),
-                    lng: parseFloat( data.markers[ i ].lng )
-                } );
+                var marker = new google.maps.Marker( parseMarkerData( data.markers[ i ] ) );
+                marker.setPosition( new google.maps.LatLng( marker.lat , marker.lng ) );
+                marker.setMap( map );
                 displayInfoWindow( map, marker );
             }
         }
@@ -83,8 +75,6 @@ function initMap() {
 
     $( '#publish' ).on( 'click', function ( e ) {
         var mapAttributes = getMapAttributes( map );
-        console.log(mapAttributes);
-        e.preventDefault();
         $.ajax( {
             type: "POST",
             url: admin.ajaxURL,
@@ -110,6 +100,39 @@ function initMap() {
         };
         showMarkerForm( map, marker );
         markers.push( markerObject );
+    }
+
+    function postFormHandler() {
+        var scaleControlField = $( '#lb-gmaps-map-scale-control' );
+
+        scaleControlField.on( 'change', function ( e ) {
+            map.scaleControl = e.target.checked;
+            map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), map );
+        } );
+
+        var controls = $( '#lb-gmaps-fields select:not( [multiple] )' );
+        for ( var i = 0; i < controls.length; i++ ) {
+            var selectDropdown = $( controls[ i ] );
+            selectDropdown.on( 'change', function ( e ) {
+                var value = $( e.target ).find( 'option:selected' ).val();
+                var controlType = e.target.id
+                    .replace( 'lb-gmaps-map-', '' )
+                    .replace( /-/g, '' )
+                    .replace( 'control', 'Control' )
+                    .replace( 'view', 'View' );
+                if( value !== 'choose' ) {
+                    map[ controlType ] = true;
+                    map[ controlType + 'Options' ] = { position: google.maps.ControlPosition[ value ] };
+
+                    map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), map );
+                } else {
+                    delete map[ controlType ];
+                    delete map[ controlType + 'Options' ];
+                    map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), map );
+                }
+                console.log(map);
+            } )
+        }
     }
 }
 
@@ -335,4 +358,36 @@ function getMapAttributes( map ) {
     }
 
     return mapAttributes;
+}
+
+function parseMapData( data ) {
+    var mapData = {};
+    var keys = Object.keys( data );
+    
+    for ( var key of keys ) {
+        if( $.isNumeric( data[ key ] ) ) {
+            mapData[ key ] = parseFloat( data[ key ] );
+        } else if( null !== data[ key ] ) {
+            mapData[ key ] = data[ key ];
+        }
+    }
+    mapData.center = { lat: mapData.lat, lng: mapData.lng };
+    return mapData;
+}
+
+function parseMarkerData( data ) {
+    var markerData = {
+        uniqueness: data.uniqueness,
+        lat: parseFloat( data.lat ),
+        lng: parseFloat( data.lng )
+    };
+    if( null !== data.name ) {
+        markerData.name = data.name;
+    }
+
+    if( null !== data.content ) {
+        markerData.content = data.content;
+    }
+
+    return markerData;
 }
