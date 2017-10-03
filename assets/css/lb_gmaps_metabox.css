@@ -193,4 +193,10 @@
     color: #417DF1;
 }
 
+.lb-gmaps-clearing-button button {
+    position: absolute;
+    left: 15%;
+    margin-top: 10px;
+}
+
 

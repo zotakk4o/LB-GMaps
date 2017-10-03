@@ -8,11 +8,12 @@ function initMap() {
     } else {
         var map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), {
             center: {lat: 45.40338, lng: 10.17403},
-            zoom: 3
+            zoom: 3,
+            disableDefaultUI: true
         });
     }
 
-    postFormHandler( map );
+    postFormHandler();
 
     if( 0 !== data.markers.length ) {
         for ( var i = 0; i < data.markers.length; i++ ) {
@@ -104,6 +105,7 @@ function initMap() {
 
     function postFormHandler() {
         var scaleControlField = $( '#lb-gmaps-map-scale-control' );
+        $( '#lb-gmaps-map-types' ).parent().hide();
 
         scaleControlField.on( 'change', function ( e ) {
             map.scaleControl = e.target.checked;
@@ -117,22 +119,54 @@ function initMap() {
                 var value = $( e.target ).find( 'option:selected' ).val();
                 var controlType = e.target.id
                     .replace( 'lb-gmaps-map-', '' )
-                    .replace( /-/g, '' )
-                    .replace( 'control', 'Control' )
-                    .replace( 'view', 'View' );
+                    .split( '-' )
+                    .map( ( x ) => {
+                        return x[0].toUpperCase() + x.slice( 1 );
+                    } )
+                    .join( '' );
+                controlType = controlType[0].toLowerCase() + controlType.slice( 1 );
                 if( value !== 'choose' ) {
                     map[ controlType ] = true;
-                    map[ controlType + 'Options' ] = { position: google.maps.ControlPosition[ value ] };
-
+                    if( 'mapTypeControl' === controlType ) {
+                        $( '#lb-gmaps-map-types' ).parent().show();
+                    }
+                    // Check if the corresponding control has already had its options set
+                    if( typeof  map[ controlType + 'Options' ] === 'object' ) {
+                        map[ controlType + 'Options' ]['position'] = google.maps.ControlPosition[ value ];
+                    } else {
+                        map[ controlType + 'Options' ] = { position: google.maps.ControlPosition[ value ] };
+                        if( 'mapTypeControl' === controlType ) {
+                            map[ controlType + 'Options' ]['mapTypeIds'] = ['roadmap'];
+                        }
+                    }
                     map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), map );
                 } else {
-                    delete map[ controlType ];
-                    delete map[ controlType + 'Options' ];
+                    if( 'mapTypeControl' === controlType ) {
+                        $( '#lb-gmaps-map-types' ).parent().hide();
+                    }
+                    map[ controlType ] = false;
                     map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), map );
                 }
-                console.log(map);
-            } )
+            } );
         }
+
+        var mapTypes = $( '#lb-gmaps-map-types' );
+
+        mapTypes.on( 'change', function ( e ) {
+            var selectedOptions = $( e.target ).find( 'option:selected' );
+            var ids = [];
+            for ( var i = 0; i < selectedOptions.length; i++ ) {
+               ids.push( $( selectedOptions[ i ] ).val() );
+            }
+            if( typeof map.mapTypeControlOptions === 'object' ) {
+                map.mapTypeControlOptions.mapTypeIds = ids;
+            } else {
+                map.mapTypeControlOptions = {
+                    mapTypeIds : ids
+                }
+            }
+            map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), map );
+        } );
     }
 }
 
