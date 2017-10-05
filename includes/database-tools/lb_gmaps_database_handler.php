@@ -33,10 +33,13 @@ class LB_GMaps_Database_Handler {
 			lng VARCHAR(100) NOT NULL,
 			lat VARCHAR(100) NOT NULL,
 			zoom VARCHAR(100) NOT NULL,
+			zoom_control VARCHAR(100) NULL,
+			gesture_handling VARCHAR(100) NULL,
 			scale_control VARCHAR(100) NULL,
 			street_view_control VARCHAR(100) NULL,
 			rotate_control VARCHAR(100) NULL,
 			fullscreen_control VARCHAR(100) NULL,
+			map_type_control VARCHAR(100) NULL,
 			map_types VARCHAR(100) NULL,
 			PRIMARY KEY (post_id)
 		) $charset_collate;";

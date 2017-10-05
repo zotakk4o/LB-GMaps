@@ -9,8 +9,8 @@
 			<input type="text" name="lb-gmaps-map-markers" id="lb-gmaps-map-markers">
 		</div>
 		<div class="lb-gmaps-form-group">
-			<label class="map-controls" for="lb-gmaps-map-gestures-handling"><?php echo __( 'Gestures Handling', 'lb-gmaps' ) ?></label>
-			<input type="checkbox" name="lb-gmaps-map-gestures-handling" id="lb-gmaps-map-gestures-handling">
+			<label class="map-controls" for="lb-gmaps-map-gesture-handling"><?php echo __( 'Gestures Handling', 'lb-gmaps' ) ?></label>
+			<input type="checkbox" name="lb-gmaps-map-gesture-handling" id="lb-gmaps-map-gesture-handling">
 		</div>
 		<div class="lb-gmaps-form-group">
 			<label class="map-controls" for="lb-gmaps-map-scale-control"><?php echo __( 'Scale Control', 'lb-gmaps' ) ?></label>
