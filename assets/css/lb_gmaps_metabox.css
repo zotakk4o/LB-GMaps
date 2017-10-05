@@ -6,7 +6,7 @@
 }
 
 #lb-gmaps-fields {
-    width: 50%;
+    width: 45%;
     height: 90%;
     float: left;
     overflow-y: scroll;
@@ -19,7 +19,7 @@
 }
 
 .lb-gmaps-form-group {
-    margin: 10px 0;
+    margin: 20px 0;
 }
 
 #lb-gmaps-marker-dialog,
@@ -96,11 +96,17 @@
     float: right;
 }
 
-#lb-gmaps-fields .lb-gmaps-form-group input[type=text] {
-    width: 95%;
+#lb-gmaps-fields .lb-gmaps-form-group select,
+#lb-gmaps-fields .lb-gmaps-form-group select option,
+#lb-gmaps-fields .lb-gmaps-form-group input {
+    border-radius: 15px;
 }
+#lb-gmaps-fields .lb-gmaps-form-group input[type=text] {
+    width: 75%;
+}
+
 #lb-gmaps-live-preview {
-    width: 50%;
+    width: 55%;
     margin: 0;
     padding: 0;
     max-width: none;

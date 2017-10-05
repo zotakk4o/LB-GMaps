@@ -29,6 +29,7 @@ class LB_GMaps_Ajaxer {
 	}
 
 	public function save_map_data() {
+		var_dump($_POST);exit;
 		if( isset( $_POST['map'] ) && ! empty( $_POST['map'] ) ) {
 			$this->db_handler->save_map( $_POST['map'] );
 		}

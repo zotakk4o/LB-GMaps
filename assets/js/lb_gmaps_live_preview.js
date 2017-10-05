@@ -9,11 +9,10 @@ function initMap() {
         var map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), {
             center: {lat: 45.40338, lng: 10.17403},
             zoom: 3,
-            disableDefaultUI: true
+            disableDefaultUI: true,
+            gestureHandling: 'none'
         });
     }
-
-    postFormHandler();
 
     if( 0 !== data.markers.length ) {
         for ( var i = 0; i < data.markers.length; i++ ) {
@@ -26,62 +25,21 @@ function initMap() {
         }
     }
 
+    postFormHandler();
+
     map.addListener( 'dblclick', function ( event ) {
         createMarker( map, event.latLng );
     } );
 
-    var input = document.getElementById( 'lb-gmaps-map-markers' );
-
-    var autocomplete = new google.maps.places.Autocomplete( input );
-    autocomplete.bindTo('bounds', map);
-    autocomplete.addListener( 'place_changed', function() {
-        if( ! $( '#lb-gmaps-map-marker-popup' ).is( ':checked' ) ) {
-            var dialog = $( views.dialogBox );
-            dialog.insertAfter( '#lb-gmaps-fields' );
-        }
-
-        $( '#yes' ).on( 'click', function () {
-           dialog.remove();
-           createMarker( map, place.geometry.location );
-        } );
-        $( '#no' ).on( 'click',function () {
-            dialog.remove();
-        } );
-
-
-        var place = autocomplete.getPlace();
-        if ( ! place.geometry ) {
-            // User entered the name of a Place that was not suggested and
-            // pressed the Enter key, or the Place Details request failed.
-            window.alert("No details available for input: '" + place.name + "'");
-            return;
-        }
-
-        // If the place has a geometry, then present it on a map.
-        if ( place.geometry.viewport ) {
-            map.fitBounds( place.geometry.viewport );
-        } else {
-            map.setCenter( place.geometry.location );
-        }
-
-        var address = '';
-        if ( place.address_components ) {
-            address = [
-                ( place.address_components[0] && place.address_components[0].short_name || '' ),
-                ( place.address_components[1] && place.address_components[1].short_name || '' ),
-                ( place.address_components[2] && place.address_components[2].short_name || '' )
-            ].join(' ');
-        }
-    });
-
     $( '#publish' ).on( 'click', function ( e ) {
         var mapAttributes = getMapAttributes( map );
+        e.preventDefault();
         $.ajax( {
             type: "POST",
             url: admin.ajaxURL,
             data: {
                 action: 'save_map_data',
-                map: mapAttributes,
+                map: JSON.stringify( map ),
                 markers: markers
             }
         } );
@@ -104,10 +62,74 @@ function initMap() {
     }
 
     function postFormHandler() {
-        var scaleControlField = $( '#lb-gmaps-map-scale-control' );
-        $( '#lb-gmaps-map-types' ).parent().hide();
 
-        scaleControlField.on( 'change', function ( e ) {
+        var input = document.getElementById( 'lb-gmaps-map-markers' );
+
+        var autocomplete = new google.maps.places.Autocomplete( input );
+        autocomplete.bindTo('bounds', map);
+        autocomplete.addListener( 'place_changed', function() {
+            if( ! $( '#lb-gmaps-map-marker-popup' ).is( ':checked' ) ) {
+                var dialog = $( views.dialogBox );
+                dialog.insertAfter( '#lb-gmaps-fields' );
+            }
+
+            $( '#yes' ).on( 'click', function () {
+                dialog.remove();
+                createMarker( map, place.geometry.location );
+            } );
+            $( '#no' ).on( 'click',function () {
+                dialog.remove();
+            } );
+
+
+            var place = autocomplete.getPlace();
+            if ( ! place.geometry ) {
+                // User entered the name of a Place that was not suggested and
+                // pressed the Enter key, or the Place Details request failed.
+                window.alert("No details available for input: '" + place.name + "'");
+                return;
+            }
+
+            // If the place has a geometry, then present it on a map.
+            if ( place.geometry.viewport ) {
+                map.fitBounds( place.geometry.viewport );
+            } else {
+                map.setCenter( place.geometry.location );
+            }
+
+            var address = '';
+            if ( place.address_components ) {
+                address = [
+                    ( place.address_components[0] && place.address_components[0].short_name || '' ),
+                    ( place.address_components[1] && place.address_components[1].short_name || '' ),
+                    ( place.address_components[2] && place.address_components[2].short_name || '' )
+                ].join(' ');
+            }
+        });
+
+        $( '#lb-gmaps-map-gestures-handling' ).on( 'change', function ( e ) {
+            if( e.target.checked ) {
+                map.set( 'gestureHandling', 'greedy' );
+            } else {
+                map.set( 'gestureHandling', 'none' );
+            }
+            map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), map );
+        } );
+
+        $( '#lb-gmaps-map-draggable' ).on( 'change', function ( e ) {
+            if( e.target.checked ) {
+                map.set( 'draggable', true );
+            } else {
+                map.set( 'draggable', false );
+            }
+            map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), map );
+            console.log(map);
+        } );
+
+        var mapTypes = $( '#lb-gmaps-map-types' );
+        mapTypes.parent().hide();
+
+        $( '#lb-gmaps-map-scale-control' ).on( 'change', function ( e ) {
             map.scaleControl = e.target.checked;
             map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), map );
         } );
@@ -128,7 +150,7 @@ function initMap() {
                 if( value !== 'choose' ) {
                     map[ controlType ] = true;
                     if( 'mapTypeControl' === controlType ) {
-                        $( '#lb-gmaps-map-types' ).parent().show();
+                        mapTypes.parent().show();
                     }
                     // Check if the corresponding control has already had its options set
                     if( typeof  map[ controlType + 'Options' ] === 'object' ) {
@@ -137,6 +159,7 @@ function initMap() {
                         map[ controlType + 'Options' ] = { position: google.maps.ControlPosition[ value ] };
                         if( 'mapTypeControl' === controlType ) {
                             map[ controlType + 'Options' ]['mapTypeIds'] = ['roadmap'];
+                            $( '#lb-gmaps-map-types' ).find( 'option[value=roadmap]' ).prop( 'selected', true );
                         }
                     }
                     map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), map );
@@ -150,14 +173,13 @@ function initMap() {
             } );
         }
 
-        var mapTypes = $( '#lb-gmaps-map-types' );
-
         mapTypes.on( 'change', function ( e ) {
             var selectedOptions = $( e.target ).find( 'option:selected' );
             var ids = [];
             for ( var i = 0; i < selectedOptions.length; i++ ) {
                ids.push( $( selectedOptions[ i ] ).val() );
             }
+
             if( typeof map.mapTypeControlOptions === 'object' ) {
                 map.mapTypeControlOptions.mapTypeIds = ids;
             } else {
@@ -165,6 +187,14 @@ function initMap() {
                     mapTypeIds : ids
                 }
             }
+
+            if( 0 === ids.length ) {
+                mapTypes.parent().hide();
+                $( '#lb-gmaps-map-map-type-control' ).find( 'option[value=choose]' ).prop( 'selected', true );
+                delete map.mapTypeControl;
+                delete map.mapTypeControlOptions;
+            }
+
             map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), map );
         } );
     }
@@ -425,3 +455,5 @@ function parseMarkerData( data ) {
 
     return markerData;
 }
+//TODO: Add Comments
+//TODO: Use API Getters and Setters
