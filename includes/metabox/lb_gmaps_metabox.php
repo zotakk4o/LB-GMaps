@@ -9,113 +9,58 @@
 			<input type="text" name="lb-gmaps-map-markers" id="lb-gmaps-map-markers">
 		</div>
 		<div class="lb-gmaps-form-group">
+			<label class="map-controls" for="lb-gmaps-map-full-width"><?php echo __( 'Full Width', 'lb-gmaps' ) ?></label>
+			<input type="checkbox" name="lb-gmaps-map-full-width" id="lb-gmaps-map-full-width" <?php checked( $this->get_map_data()->gesture_handling,'true' ) ?>>
+		</div>
+		<div class="lb-gmaps-form-group">
+			<label for="lb-gmaps-map-width"><?php echo __( 'Width', 'lb-gmaps' ) ?></label>
+			<input type="number" class="map-dimensions" name="lb-gmaps-map-width" id="lb-gmaps-map-width" placeholder="<?php echo __( 'Enter Width', 'lb-gmaps' ) ?>">
+		</div>
+		<div class="lb-gmaps-form-group">
+			<label for="lb-gmaps-map-height"><?php echo __( 'Height', 'lb-gmaps' ) ?></label>
+			<input type="number" class="map-dimensions" name="lb-gmaps-map-height" id="lb-gmaps-map-height" placeholder="<?php echo __( 'Enter Height', 'lb-gmaps' ) ?>">
+		</div>
+		<div class="lb-gmaps-form-group">
 			<label class="map-controls" for="lb-gmaps-map-gesture-handling"><?php echo __( 'Gestures Handling', 'lb-gmaps' ) ?></label>
-			<input type="checkbox" name="lb-gmaps-map-gesture-handling" id="lb-gmaps-map-gesture-handling">
+			<input type="checkbox" name="lb-gmaps-map-gesture-handling" id="lb-gmaps-map-gesture-handling" <?php checked( $this->get_map_data()->gesture_handling,'greedy' ) ?>>
 		</div>
 		<div class="lb-gmaps-form-group">
 			<label class="map-controls" for="lb-gmaps-map-scale-control"><?php echo __( 'Scale Control', 'lb-gmaps' ) ?></label>
-			<input type="checkbox" name="lb-gmaps-map-scale-control" id="lb-gmaps-map-scale-control">
+			<input type="checkbox" name="lb-gmaps-map-scale-control" id="lb-gmaps-map-scale-control" <?php checked( $this->get_map_data()->scale_control,'true' ) ?>>
 		</div>
 		<div class="lb-gmaps-form-group">
-			<label class="map-controls" for="lb-gmaps-map-zoom-control"><?php echo __( 'Zoom Control', 'lb-gmaps' ) ?></label>
-			<select name="lb-gmaps-map-zoom-control" id="lb-gmaps-map-zoom-control">
-				<option value="choose">Choose...</option>
-				<option value="TOP_LEFT">Top Left</option>
-				<option value="TOP_RIGHT">Top Right</option>
-				<option value="TOP_CENTER">Top Center</option>
-				<option value="LEFT_TOP">Left Top</option>
-				<option value="LEFT_CENTER">Left Center</option>
-				<option value="LEFT_BOTTOM">Left Bottom</option>
-				<option value="RIGHT_TOP">Right Top</option>
-				<option value="RIGHT_CENTER">Right Center</option>
-				<option value="RIGHT_BOTTOM">Right Bottom</option>
-				<option value="BOTTOM_LEFT">Bottom Left</option>
-				<option value="BOTTOM_RIGHT">Bottom Right</option>
-				<option value="BOTTOM_CENTER">Bottom Center</option>
-			</select>
+			<?php $this->add_control_select( 'zoom' ); ?>
 		</div>
 		<div class="lb-gmaps-form-group">
-			<label class="map-controls" for="lb-gmaps-map-street-view-control"><?php echo __( 'Street View Control', 'lb-gmaps' ) ?></label>
-			<select name="lb-gmaps-map-street-view-control" id="lb-gmaps-map-street-view-control">
-				<option value="choose">Choose...</option>
-				<option value="TOP_LEFT">Top Left</option>
-				<option value="TOP_RIGHT">Top Right</option>
-				<option value="TOP_CENTER">Top Center</option>
-				<option value="LEFT_TOP">Left Top</option>
-				<option value="LEFT_CENTER">Left Center</option>
-				<option value="LEFT_BOTTOM">Left Bottom</option>
-				<option value="RIGHT_TOP">Right Top</option>
-				<option value="RIGHT_CENTER">Right Center</option>
-				<option value="RIGHT_BOTTOM">Right Bottom</option>
-				<option value="BOTTOM_LEFT">Bottom Left</option>
-				<option value="BOTTOM_RIGHT">Bottom Right</option>
-				<option value="BOTTOM_CENTER">Bottom Center</option>
-			</select>
+			<?php $this->add_control_select( 'street-view' ); ?>
 		</div>
 		<div class="lb-gmaps-form-group">
-			<label class="map-controls" for="lb-gmaps-map-rotate-control"><?php echo __( 'Rotate Control', 'lb-gmaps' ) ?></label>
-			<select name="lb-gmaps-map-rotate-control" id="lb-gmaps-map-rotate-control">
-				<option value="choose">Choose...</option>
-				<option value="TOP_LEFT">Top Left</option>
-				<option value="TOP_RIGHT">Top Right</option>
-				<option value="TOP_CENTER">Top Center</option>
-				<option value="LEFT_TOP">Left Top</option>
-				<option value="LEFT_CENTER">Left Center</option>
-				<option value="LEFT_BOTTOM">Left Bottom</option>
-				<option value="RIGHT_TOP">Right Top</option>
-				<option value="RIGHT_CENTER">Right Center</option>
-				<option value="RIGHT_BOTTOM">Right Bottom</option>
-				<option value="BOTTOM_LEFT">Bottom Left</option>
-				<option value="BOTTOM_RIGHT">Bottom Right</option>
-				<option value="BOTTOM_CENTER">Bottom Center</option>
-			</select>
+			<?php $this->add_control_select( 'rotate' ); ?>
 		</div>
 		<div class="lb-gmaps-form-group">
-			<label class="map-controls" for="lb-gmaps-map-fullscreen-control"><?php echo __( 'Fullscreen Control', 'lb-gmaps' ) ?></label>
-			<select name="lb-gmaps-map-fullscreen-control" id="lb-gmaps-map-fullscreen-control">
-				<option value="choose">Choose...</option>
-				<option value="TOP_LEFT">Top Left</option>
-				<option value="TOP_RIGHT">Top Right</option>
-				<option value="TOP_CENTER">Top Center</option>
-				<option value="LEFT_TOP">Left Top</option>
-				<option value="LEFT_CENTER">Left Center</option>
-				<option value="LEFT_BOTTOM">Left Bottom</option>
-				<option value="RIGHT_TOP">Right Top</option>
-				<option value="RIGHT_CENTER">Right Center</option>
-				<option value="RIGHT_BOTTOM">Right Bottom</option>
-				<option value="BOTTOM_LEFT">Bottom Left</option>
-				<option value="BOTTOM_RIGHT">Bottom Right</option>
-				<option value="BOTTOM_CENTER">Bottom Center</option>
-			</select>
+			<?php $this->add_control_select( 'fullscreen' ); ?>
 		</div>
 		<div class="lb-gmaps-form-group">
-			<label class="map-controls" for="lb-gmaps-map-map-type-control"><?php echo __( 'Map Type Control', 'lb-gmaps' ) ?></label>
-			<select name="lb-gmaps-map-map-type-control" id="lb-gmaps-map-map-type-control">
-				<option value="choose">Choose...</option>
-				<option value="TOP_LEFT">Top Left</option>
-				<option value="TOP_RIGHT">Top Right</option>
-				<option value="TOP_CENTER">Top Center</option>
-				<option value="LEFT_TOP">Left Top</option>
-				<option value="LEFT_CENTER">Left Center</option>
-				<option value="LEFT_BOTTOM">Left Bottom</option>
-				<option value="RIGHT_TOP">Right Top</option>
-				<option value="RIGHT_CENTER">Right Center</option>
-				<option value="RIGHT_BOTTOM">Right Bottom</option>
-				<option value="BOTTOM_LEFT">Bottom Left</option>
-				<option value="BOTTOM_RIGHT">Bottom Right</option>
-				<option value="BOTTOM_CENTER">Bottom Center</option>
-			</select>
+			<?php $this->add_control_select( 'map-type' ); ?>
 		</div>
 		<div class="lb-gmaps-form-group">
 			<label class="map-controls" for="lb-gmaps-map-types"><?php echo __( 'Map Types', 'lb-gmaps' ) ?></label>
 			<select name="lb-gmaps-map-types" id="lb-gmaps-map-types" multiple>
-				<option value="roadmap" selected>roadmap</option>
-				<option value="satellite">satellite</option>
-				<option value="hybrid">hybrid</option>
-				<option value="terrain">terrain</option>
+				<?php if( null !== $this->get_map_data() && isset( $this->get_map_data()->map_types ) ) :
+					$map_types = explode( ', ', $this->get_map_data()->map_types );
+					?>
+					<option value="roadmap" <?php if( in_array( 'roadmap', $map_types ) ) echo 'selected=selected' ?>>roadmap</option>
+					<option value="satellite" <?php if( in_array( 'satellite', $map_types ) ) echo 'selected=selected' ?>>satellite</option>
+					<option value="hybrid" <?php if( in_array( 'hybrid', $map_types ) ) echo 'selected=selected' ?>>hybrid</option>
+					<option value="terrain" <?php if( in_array( 'terrain', $map_types ) ) echo 'selected=selected' ?>>terrain</option>
+				<?php else: ?>
+					<option value="roadmap" selected>roadmap</option>
+					<option value="satellite">satellite</option>
+					<option value="hybrid">hybrid</option>
+					<option value="terrain">terrain</option>
+				<?php endif; ?>
 			</select>
 		</div>
 	</div>
 	<div id="lb-gmaps-live-preview"></div>
 </div>
-<!--TODO: UPDATE CODE DUPLICATION-->

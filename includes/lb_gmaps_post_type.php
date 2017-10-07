@@ -9,6 +9,8 @@ class LB_GMaps_Post_Type {
 	private function add_hooks() {
 		if( ! post_type_exists( LB_GMAPS_POST_TYPE ) ) {
 			add_action( 'init', array( $this, 'register' ) );
+			add_action('manage_'.LB_GMAPS_POST_TYPE.'_posts_custom_column', array($this,'handle_custom_columns'), 10, 2);
+			add_filter('manage_'.LB_GMAPS_POST_TYPE.'_posts_columns', array($this,'add_new_columns'));
 		}
 	}
 
@@ -46,4 +48,21 @@ class LB_GMaps_Post_Type {
 
 		register_post_type( LB_GMAPS_POST_TYPE, $args );
 	}
+
+	public function handle_custom_columns( $column, $post_id ) {
+		switch ( $column ) {
+			case 'shortcode':
+				echo "[lb-gmaps id='$post_id']";
+		}
+	}
+
+	public function add_new_columns( $columns ) {
+		unset( $columns['comments'] );
+		$new_columns = array(
+			'shortcode' => __('Shortcode', 'lb-gmaps'),
+		);
+		return array_merge($columns, $new_columns);
+	}
+
+
 }

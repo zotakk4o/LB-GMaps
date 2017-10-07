@@ -15,6 +15,7 @@ class LB_GMaps {
 		$this->register_database_creation();
 		$this->register_custom_post_type();
 		$this->register_metabox_handler();
+		$this->register_shortcode();
 	}
 
 	private function register_constants() {
@@ -45,7 +46,12 @@ class LB_GMaps {
 
 	private function register_metabox_handler() {
 		LB_GMaps_Helper::include_file( 'includes/lb_gmaps_metabox_handler' );
-		new LB_GMaps_Metabox_Handler();
+		new LB_GMaps_Metabox_Handler( );
+	}
+
+	private function register_shortcode() {
+		LB_GMaps_Helper::include_file( 'includes/lb_gmaps_shortcode_handler' );
+		new LB_GMaps_Shortcode_Handler( );
 	}
 
 	private function register_helper() {
