@@ -333,11 +333,12 @@ function postFormHandler( map, mapAttributes ) {
                 mapAttributes.width = '50%';
             }
         }
+        google.maps.event.trigger( map, 'resize');
     } );
 
     ( function ( mapAttributes ) {
-        handleDimensionField( '#lb-gmaps-map-width', mapAttributes );
-        handleDimensionField( '#lb-gmaps-map-height', mapAttributes );
+        handleDimensionField( '#lb-gmaps-map-width', map, mapAttributes );
+        handleDimensionField( '#lb-gmaps-map-height', map, mapAttributes );
     } )( mapAttributes );
 
     var mapTypes = $( '#lb-gmaps-map-types' );
@@ -424,7 +425,7 @@ function postFormHandler( map, mapAttributes ) {
     } );
 }
 
-function handleDimensionField( selector, mapAttributes ) {
+function handleDimensionField( selector, map, mapAttributes ) {
     $( selector ).on( 'keydown', function ( e ) {
         var val = parseInt( $( e.target ).val().replace( 'px', '' ).replace( '%', '' ) );
         if( 40 === e.keyCode ) {
@@ -487,6 +488,7 @@ function handleDimensionField( selector, mapAttributes ) {
             }
             mapAttributes.width = $( e.target ).val();
         }
+        google.maps.event.trigger( map, 'resize');
     } );
 }
 

@@ -11,7 +11,6 @@
 		<div class="lb-gmaps-form-group">
 			<label class="map-controls" for="lb-gmaps-map-full-width"><?php echo __( 'Full Width', 'lb-gmaps' ) ?></label>
 			<input type="checkbox" id="lb-gmaps-map-full-width" <?php if( is_object( $this->get_map_data() ) ) { checked( $this->get_map_data()->gesture_handling,'true' ); } ?>>
-			<small class="lb-gmaps-tip"><?php echo __( 'If you have parts of the map in grey, tick the "Gesture Handling" option and retick if you don\'t want it.', 'lb-gmaps' )?></small>
 		</div>
 		<div class="lb-gmaps-form-group dimensions">
 			<label for="lb-gmaps-map-width"><?php echo __( 'Width', 'lb-gmaps' ) ?></label>
