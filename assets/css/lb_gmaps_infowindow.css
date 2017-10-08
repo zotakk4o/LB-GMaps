@@ -1,6 +1,6 @@
 #lb-gmaps-live-preview .gm-style-iw,
-#lb-gmaps-front-end .gm-style-iw{
-    width: calc( 100% + 15px ) !important;
+#lb-gmaps-front-end .gm-style-iw {
+    width: calc(100% + 15px) !important;
     top: 15px !important;
     left: 0 !important;
     background-color: #fff;
@@ -10,15 +10,17 @@
 }
 
 #lb-gmaps-live-preview .gm-style-iw div,
-#lb-gmaps-front-end .gm-style-iw div{
+#lb-gmaps-front-end .gm-style-iw div {
     width: 100% !important;
     max-width: 100% !important;
     text-align: center;
     overflow: hidden !important;
 }
+
 #lb-gmaps-marker-contaier {
     margin-bottom: 10px;
 }
+
 #lb-gmaps-marker-contaier #lb-gmaps-marker-name {
     font-family: 'Open Sans Condensed', sans-serif;
     width: 100% !important;
@@ -29,7 +31,8 @@
     margin: 0;
     border-radius: 2px 2px 0 0;
 }
-#lb-gmaps-marker-contaier #lb-gmaps-marker-description{
+
+#lb-gmaps-marker-contaier #lb-gmaps-marker-description {
     font-size: 13px;
     line-height: 18px;
     font-weight: 400;
@@ -40,6 +43,10 @@
     max-height: 140px;
     overflow-y: auto !important;
     overflow-x: hidden !important;
+}
+
+#lb-gmaps-marker-description p {
+    margin: 1em 0;
 }
 
 #lb-gmaps-marker-contaier #lb-gmaps-marker-name p {
@@ -58,15 +65,16 @@
     height: 25px;
     bottom: 10px;
     right: 18px;
-    background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
-    background: -webkit-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
-    background: -moz-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
-    background: -ms-linear-gradient(top, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 100%);
+    background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 100%);
+    background: -moz-linear-gradient(top, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 100%);
+    background: -ms-linear-gradient(top, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 100%);
 }
 
 #edit-lb-gmaps-marker {
     left: 5px;
 }
+
 #delete-lb-gmaps-marker {
     right: 5px;
 }

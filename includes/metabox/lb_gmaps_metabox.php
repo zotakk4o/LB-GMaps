@@ -2,31 +2,36 @@
 	<div id="lb-gmaps-fields">
 		<div class="lb-gmaps-form-group">
 			<label for="lb-gmaps-map-marker-popup"><?php echo __( 'Prevent place popup from displaying', 'lb-gmaps' ) ?></label>
-			<input type="checkbox" name="lb-gmaps-map-marker-popup" id="lb-gmaps-map-marker-popup">
+			<input type="checkbox" id="lb-gmaps-map-marker-popup">
 		</div>
 		<div class="lb-gmaps-form-group">
 			<label for="lb-gmaps-map-markers"><?php echo __( 'Search Places', 'lb-gmaps' ) ?></label>
-			<input type="text" name="lb-gmaps-map-markers" id="lb-gmaps-map-markers">
+			<input type="text" id="lb-gmaps-map-markers">
 		</div>
 		<div class="lb-gmaps-form-group">
 			<label class="map-controls" for="lb-gmaps-map-full-width"><?php echo __( 'Full Width', 'lb-gmaps' ) ?></label>
-			<input type="checkbox" name="lb-gmaps-map-full-width" id="lb-gmaps-map-full-width" <?php checked( $this->get_map_data()->gesture_handling,'true' ) ?>>
+			<input type="checkbox" id="lb-gmaps-map-full-width" <?php if( is_object( $this->get_map_data() ) ) { checked( $this->get_map_data()->gesture_handling,'true' ); } ?>>
+			<small class="lb-gmaps-tip"><?php echo __( 'If you have parts of the map in grey, tick the "Gesture Handling" option and retick if you don\'t want it.', 'lb-gmaps' )?></small>
 		</div>
-		<div class="lb-gmaps-form-group">
+		<div class="lb-gmaps-form-group dimensions">
 			<label for="lb-gmaps-map-width"><?php echo __( 'Width', 'lb-gmaps' ) ?></label>
-			<input type="number" class="map-dimensions" name="lb-gmaps-map-width" id="lb-gmaps-map-width" placeholder="<?php echo __( 'Enter Width', 'lb-gmaps' ) ?>">
+			<input type="text" class="map-dimensions" id="lb-gmaps-map-width" value="50%">
+			<small class="lb-gmaps-tip"><?php echo __( 'Width in percents will 
+			                                            apply to current elements accordingly and may look differently on your page.', 'lb-gmaps' )?></small>
 		</div>
-		<div class="lb-gmaps-form-group">
+		<div class="lb-gmaps-form-group dimensions">
 			<label for="lb-gmaps-map-height"><?php echo __( 'Height', 'lb-gmaps' ) ?></label>
-			<input type="number" class="map-dimensions" name="lb-gmaps-map-height" id="lb-gmaps-map-height" placeholder="<?php echo __( 'Enter Height', 'lb-gmaps' ) ?>">
+			<input type="text" class="map-dimensions" id="lb-gmaps-map-height" value="800px">
+			<small class="lb-gmaps-tip"><?php echo __( 'Height in percents will 
+			                                            apply to current elements accordingly and may look differently on your page.', 'lb-gmaps' )?></small>
 		</div>
 		<div class="lb-gmaps-form-group">
 			<label class="map-controls" for="lb-gmaps-map-gesture-handling"><?php echo __( 'Gestures Handling', 'lb-gmaps' ) ?></label>
-			<input type="checkbox" name="lb-gmaps-map-gesture-handling" id="lb-gmaps-map-gesture-handling" <?php checked( $this->get_map_data()->gesture_handling,'greedy' ) ?>>
+			<input type="checkbox" id="lb-gmaps-map-gesture-handling" <?php if( is_object( $this->get_map_data() ) ) { checked( $this->get_map_data()->gesture_handling,'greedy' ); }?>>
 		</div>
 		<div class="lb-gmaps-form-group">
 			<label class="map-controls" for="lb-gmaps-map-scale-control"><?php echo __( 'Scale Control', 'lb-gmaps' ) ?></label>
-			<input type="checkbox" name="lb-gmaps-map-scale-control" id="lb-gmaps-map-scale-control" <?php checked( $this->get_map_data()->scale_control,'true' ) ?>>
+			<input type="checkbox" id="lb-gmaps-map-scale-control" <?php if( is_object( $this->get_map_data() ) ) { checked( $this->get_map_data()->scale_control,'true' ); }?>>
 		</div>
 		<div class="lb-gmaps-form-group">
 			<?php $this->add_control_select( 'zoom' ); ?>
@@ -45,7 +50,7 @@
 		</div>
 		<div class="lb-gmaps-form-group">
 			<label class="map-controls" for="lb-gmaps-map-types"><?php echo __( 'Map Types', 'lb-gmaps' ) ?></label>
-			<select name="lb-gmaps-map-types" id="lb-gmaps-map-types" multiple>
+			<select id="lb-gmaps-map-types" multiple>
 				<?php if( null !== $this->get_map_data() && isset( $this->get_map_data()->map_types ) ) :
 					$map_types = explode( ', ', $this->get_map_data()->map_types );
 					?>

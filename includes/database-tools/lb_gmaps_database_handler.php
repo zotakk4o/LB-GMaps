@@ -41,6 +41,8 @@ class LB_GMaps_Database_Handler {
 			fullscreen_control VARCHAR(100) NULL,
 			map_type_control VARCHAR(100) NULL,
 			map_types VARCHAR(100) NULL,
+			width VARCHAR(100) NOT NULL DEFAULT \"50%\",
+			height VARCHAR(100) NOT NULL DEFAULT \"800px\",
 			PRIMARY KEY (post_id)
 		) $charset_collate;";
 

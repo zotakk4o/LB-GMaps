@@ -5,6 +5,7 @@ function initMap() {
     };
 
     if( null !== data.map && 'object' === typeof data.map ) {
+        $( '#lb-gmaps-live-preview' ).css({height: data.map.height, width: data.map.width});
         var map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), parseMapData( data.map ) );
         mapAttributes = data.map;
     } else {
@@ -37,6 +38,8 @@ function initMap() {
         mapAttributes.lat = map.getCenter().lat();
         mapAttributes.lng = map.getCenter().lng();
         mapAttributes.zoom = map.getZoom();
+        e.preventDefault();
+        console.log(mapAttributes);
         if( mapAttributes.hasOwnProperty( 'map_types' ) && Array.isArray( mapAttributes.map_types) ) {
             mapAttributes.map_types = mapAttributes.map_types.join( ', ' );
         }
@@ -69,5 +72,4 @@ function initMap() {
 }
 
 //TODO: Add Comments
-//TODO: Use API Getters and Setters
 //TODO: Work on the Rotate Option

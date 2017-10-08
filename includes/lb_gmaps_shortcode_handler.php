@@ -43,7 +43,7 @@ class LB_GMaps_Shortcode_Handler {
 			wp_enqueue_script( 'lb-gmaps-front-end' );
 			wp_enqueue_script( 'lb-google-map' );
 
-			wp_enqueue_style( 'lb-gmaps-infowindow', LB_GMAPS_ASSETS . 'css/lb_gmaps_info_window.css' );
+			wp_enqueue_style( 'lb-gmaps-infowindow', LB_GMAPS_ASSETS . 'css/lb_gmaps_infowindow.css' );
 		}
 
 		return '<div id="lb-gmaps-front-end"></div>';

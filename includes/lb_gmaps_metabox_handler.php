@@ -66,7 +66,7 @@ class LB_GMaps_Metabox_Handler {
 			wp_enqueue_script( 'lb-google-map', 'https://maps.googleapis.com/maps/api/js?key=' . get_option( LB_GMAPS_API_KEY ) . '&libraries=places&callback=initMap', array( 'lb-gmaps-live-preview' ) );
 
 			wp_enqueue_style( 'lb-gmaps-metabox', LB_GMAPS_ASSETS . 'css/lb_gmaps_metabox.css' );
-			wp_enqueue_style( 'lb-gmaps-infowindow', LB_GMAPS_ASSETS . 'css/lb_gmaps_info_window.css' );
+			wp_enqueue_style( 'lb-gmaps-infowindow', LB_GMAPS_ASSETS . 'css/lb_gmaps_infowindow.css' );
 		}
 	}
 

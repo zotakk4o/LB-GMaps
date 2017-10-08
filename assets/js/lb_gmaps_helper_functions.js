@@ -315,24 +315,30 @@ function postFormHandler( map, mapAttributes ) {
             map.set( 'gestureHandling', 'none' );
             mapAttributes.gesture_handling = 'none';
         }
-        map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), map );
+
     } );
 
     $( '#lb-gmaps-map-full-width' ).on( 'change', function ( e ) {
         if( e.target.checked ) {
             $( '#lb-gmaps-map-width' ).parent().fadeOut( 300 );
+            $( '#lb-gmaps-live-preview' ).css( {width: '100%' } );
+            mapAttributes.width = '100%';
         } else {
             $( '#lb-gmaps-map-width' ).parent().fadeIn( 300 );
+            if( $( '#lb-gmaps-map-width' ).val() ) {
+                $( '#lb-gmaps-live-preview' ).css( {width: $( '#lb-gmaps-map-width' ).val() } );
+                mapAttributes.width = $( '#lb-gmaps-map-width' ).val();
+            } else {
+                $( '#lb-gmaps-live-preview' ).css( {width: '50%' } );
+                mapAttributes.width = '50%';
+            }
         }
     } );
 
-    $( '#lb-gmaps-map-width' ).on( 'keyup', function ( e ) {
-        $( '#lb-gmaps-live-preview' ).css( {width: $(e.target).val()} )
-    } );
-
-    $( '#lb-gmaps-map-height' ).on( 'keyup', function ( e ) {
-        $( '#lb-gmaps-live-preview' ).css( {height: $(e.target).val()} );
-    } );
+    ( function ( mapAttributes ) {
+        handleDimensionField( '#lb-gmaps-map-width', mapAttributes );
+        handleDimensionField( '#lb-gmaps-map-height', mapAttributes );
+    } )( mapAttributes );
 
     var mapTypes = $( '#lb-gmaps-map-types' );
     if( 'choose' === $( '#lb-gmaps-map-map-type-control' ).find( 'option:selected' ).val() ) {
@@ -340,9 +346,8 @@ function postFormHandler( map, mapAttributes ) {
     }
 
     $( '#lb-gmaps-map-scale-control' ).on( 'change', function ( e ) {
-        map.scaleControl = e.target.checked;
+        map.set( 'scaleControl', e.target.checked );
         mapAttributes.scale_control = e.target.checked;
-        map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), map );
     } );
 
     var controls = $( '#lb-gmaps-fields select:not( [multiple] )' );
@@ -360,30 +365,33 @@ function postFormHandler( map, mapAttributes ) {
                 .join( '' );
             controlType = controlType[0].toLowerCase() + controlType.slice( 1 );
             if( value !== 'choose' ) {
-                map[ controlType ] = true;
+                var controlTypeOptions = controlType + 'Options';
+                var controlOps = map.get( controlTypeOptions );
+                map.set( controlType, true );
                 mapAttributes[ dbControlType ] = value;
                 if( 'mapTypeControl' === controlType ) {
                     mapTypes.parent().fadeIn( 300 );
                 }
                 // Check if the corresponding control has already had its options set
-                if( typeof  map[ controlType + 'Options' ] === 'object' ) {
-                    map[ controlType + 'Options' ]['position'] = google.maps.ControlPosition[ value ];
+                if( typeof  controlOps === 'object' ) {
+                    controlOps.position = google.maps.ControlPosition[ value ];
+                    map.set( controlTypeOptions, controlOps );
                 } else {
-                    map[ controlType + 'Options' ] = { position: google.maps.ControlPosition[ value ] };
+                    map.set( controlTypeOptions, { position: google.maps.ControlPosition[ value ] } );
                     if( 'mapTypeControl' === controlType ) {
-                        map[ controlType + 'Options' ]['mapTypeIds'] = ['roadmap'];
+                        controlOps = map.get( controlTypeOptions );
+                        controlOps.mapTypeIds = ['roadmap'];
+                        map.set( controlTypeOptions, controlOps );
                         mapAttributes.map_types = ['roadmap'];
                         $( '#lb-gmaps-map-types' ).find( 'option[value=roadmap]' ).prop( 'selected', true );
                     }
                 }
-                map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), map );
             } else {
                 if( 'mapTypeControl' === controlType ) {
                     $( '#lb-gmaps-map-types' ).parent().fadeOut( 300 );
                 }
-                map[ controlType ] = false;
+                map.set( controlType, false );
                 mapAttributes[ dbControlType ] = false;
-                map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), map );
             }
         } );
     }
@@ -396,12 +404,12 @@ function postFormHandler( map, mapAttributes ) {
         }
 
         if( 0 < ids.length ) {
-            if( typeof map.mapTypeControlOptions === 'object' ) {
-                map.mapTypeControlOptions.mapTypeIds = ids;
+            var controlOps = map.get( 'mapTypeControlOptions' );
+            if( typeof controlOps === 'object' ) {
+                controlOps.mapTypeIds = ids;
+                map.set( 'mapTypeControlOptions', controlOps );
             } else {
-                map.mapTypeControlOptions = {
-                    mapTypeIds : ids
-                };
+                map.set( 'mapTypeControlOptions', { mapTypeIds : ids } );
             }
             mapAttributes.map_types = ids;
         } else {
@@ -413,7 +421,75 @@ function postFormHandler( map, mapAttributes ) {
             delete mapAttributes.map_types;
         }
 
-        map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), map );
     } );
 }
+
+function handleDimensionField( selector, mapAttributes ) {
+    $( selector ).on( 'keydown', function ( e ) {
+        var val = parseInt( $( e.target ).val().replace( 'px', '' ).replace( '%', '' ) );
+        if( 40 === e.keyCode ) {
+            if( $( e.target ).val().indexOf( 'px' ) !== -1 ) {
+                $( e.target ).val( val - 1 + 'px' );
+            } else {
+                $( e.target ).val( val - 1 + '%' );
+            }
+        }
+        if( 38 === e.keyCode ) {
+            if( $( e.target ).val().indexOf( 'px' ) !== -1 ) {
+                $( e.target ).val( val + 1 + 'px' );
+            } else {
+                $( e.target ).val( val + 1 + '%' );
+            }
+        }
+    } );
+
+    $( selector ).blur( function ( e ) {
+        var field = $( e.target );
+        var fieldType = selector.indexOf( 'height' ) !== -1 ? 'height' : 'width';
+        var minWidthInPercents = parseInt( 20000 / screen.width );
+        var minHeightInPercents = parseInt( 20000 / screen.height );
+        if( 'height' === fieldType ) {
+            if( field.val().indexOf( 'px' ) !== -1 || field.val().indexOf( '%' ) !== -1 ) {
+                if( field.val().indexOf( '%' ) !== -1 ) {
+                    if( parseInt( field.val().replace( '%', '' ) ) > 100 ) {
+                        field.val( '100%' );
+                    } else if( parseInt( field.val().replace( '%', '' ) ) < minHeightInPercents ) {
+                        field.val( minHeightInPercents + '%' );
+                    }
+                }
+                if( field.val().indexOf( 'px' ) !== -1 ) {
+                    if( parseInt( field.val().replace( 'px', '' ) ) < 200 ) {
+                        field.val( '200px' );
+                    } else if( parseInt( field.val().replace( 'px', '' ) ) > screen.height ) {
+                        field.val( screen.height + 'px' );
+                    }
+                }
+                $( '#lb-gmaps-live-preview' ).css( {height: $( e.target ).val() } );
+            }
+            mapAttributes.height = $( e.target ).val();
+        } else {
+            if( field.val().indexOf( 'px' ) !== -1 || field.val().indexOf( '%' ) !== -1 ) {
+                if( field.val().indexOf( '%' ) !== -1 ) {
+                    if( parseInt( field.val().replace( '%', '' ) ) > 100 ) {
+                        field.val( '100%' );
+                    } else if( parseInt( field.val().replace( '%', '' ) ) < minWidthInPercents ) {
+                        field.val( minWidthInPercents + '%' );
+                    }
+                }
+                if( field.val().indexOf( 'px' ) !== -1 ) {
+                    if( parseInt( field.val().replace( 'px', '' ) ) < 200 ) {
+                        field.val( '200px' );
+                    } else if( parseInt( field.val().replace( 'px', '' ) ) > screen.width ) {
+                        field.val( screen.width + 'px' );
+                    }
+                }
+                $( '#lb-gmaps-live-preview' ).css( {width: $( e.target ).val() } );
+            }
+            mapAttributes.width = $( e.target ).val();
+        }
+    } );
+}
+
+
+
 

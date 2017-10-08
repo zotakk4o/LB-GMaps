@@ -1,6 +1,6 @@
 function initMap() {
+    $( '#lb-gmaps-front-end' ).css({width: data.map.width, height: data.map.height});
     var map = new google.maps.Map( document.getElementById( 'lb-gmaps-front-end' ), parseMapData( data.map ) );
-    $( '#lb-gmaps-front-end' ).css({width: '600px', height: '600px'});
 
     for ( var i = 0; i < data.markers.length; i++ ) {
         if( 'object' === typeof data.markers[ i ] ) {
