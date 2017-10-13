@@ -1,8 +1,8 @@
 <div id="lb-gmaps-metabox">
 	<div id="lb-gmaps-fields">
 		<div class="lb-gmaps-form-group">
-			<label for="lb-gmaps-map-marker-popup"><?php echo __( 'Prevent place popup from displaying', 'lb-gmaps' ) ?></label>
-			<input type="checkbox" id="lb-gmaps-map-marker-popup">
+			<label for="lb-gmaps-map-marker-popup"><?php echo __( 'Enter fullscreen for higher precision', 'lb-gmaps' ) ?></label>
+			<input type="checkbox" id="lb-gmaps-map-fullscreen">
 		</div>
 		<div class="lb-gmaps-form-group">
 			<label for="lb-gmaps-map-markers"><?php echo __( 'Search Places', 'lb-gmaps' ) ?></label>
@@ -10,19 +10,23 @@
 		</div>
 		<div class="lb-gmaps-form-group">
 			<label class="map-controls" for="lb-gmaps-map-full-width"><?php echo __( 'Full Width', 'lb-gmaps' ) ?></label>
-			<input type="checkbox" id="lb-gmaps-map-full-width" <?php if( is_object( $this->get_map_data() ) ) { checked( $this->get_map_data()->gesture_handling,'true' ); } ?>>
+			<input type="checkbox" id="lb-gmaps-map-full-width" <?php if( is_object( $this->get_map_data() ) ) { echo checked( $this->get_map_data()->width,'100%' ); } ?>>
 		</div>
 		<div class="lb-gmaps-form-group dimensions">
 			<label for="lb-gmaps-map-width"><?php echo __( 'Width', 'lb-gmaps' ) ?></label>
-			<input type="text" class="map-dimensions" id="lb-gmaps-map-width" value="50%">
+			<input type="text" class="map-dimensions" id="lb-gmaps-map-width" value="<?php echo is_object( $this->get_map_data() ) ? $this->get_map_data()->width : '50%' ?>">
 			<small class="lb-gmaps-tip"><?php echo __( 'Width in percents will 
-			                                            apply to current elements accordingly and may look differently on your page.', 'lb-gmaps' )?></small>
+			                                            apply to current elements accordingly 
+			                                            and may look differently on your page.
+			                                            For higher precision enter fullscreen mod.', 'lb-gmaps' )?></small>
 		</div>
 		<div class="lb-gmaps-form-group dimensions">
 			<label for="lb-gmaps-map-height"><?php echo __( 'Height', 'lb-gmaps' ) ?></label>
-			<input type="text" class="map-dimensions" id="lb-gmaps-map-height" value="800px">
+			<input type="text" class="map-dimensions" id="lb-gmaps-map-height" value="<?php echo is_object( $this->get_map_data() ) ? $this->get_map_data()->height : '800px' ?>">
 			<small class="lb-gmaps-tip"><?php echo __( 'Height in percents will 
-			                                            apply to current elements accordingly and may look differently on your page.', 'lb-gmaps' )?></small>
+			                                            apply to current elements accordingly 
+			                                            and may look differently on your page.
+			                                            For higher precision enter fullscreen mod.', 'lb-gmaps' )?></small>
 		</div>
 		<div class="lb-gmaps-form-group">
 			<label class="map-controls" for="lb-gmaps-map-gesture-handling"><?php echo __( 'Gestures Handling', 'lb-gmaps' ) ?></label>

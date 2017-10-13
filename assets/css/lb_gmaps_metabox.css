@@ -1,7 +1,6 @@
 #lb-gmaps-metabox {
     width: 100%;
     min-height: 800px;
-    margin-top: 20px;
 }
 
 #lb-gmaps-fields {
@@ -19,8 +18,9 @@
 }
 
 .lb-gmaps-form-group {
-    margin: 20px 0;
+    margin: 15px 0;
     height: 5%;
+    width: 100%;
 }
 
 #lb-gmaps-marker-dialog,
@@ -42,7 +42,7 @@
 #lb-gmaps-marker-form {
     width: 30%;
     height: 29%;
-    right: 10%;
+    left: 35%;
 }
 
 #lb-gmaps-marker-form .marker-error {
@@ -130,4 +130,13 @@
 
 .dimensions {
     height: 10% !important;
+}
+
+.reordered-container {
+    height: 400px !important;
+    width: 100% !important;
+}
+.reordered-field {
+    display: inline-block;
+    width: 30%;
 }

@@ -38,8 +38,6 @@ function initMap() {
         mapAttributes.lat = map.getCenter().lat();
         mapAttributes.lng = map.getCenter().lng();
         mapAttributes.zoom = map.getZoom();
-        e.preventDefault();
-        console.log(mapAttributes);
         if( mapAttributes.hasOwnProperty( 'map_types' ) && Array.isArray( mapAttributes.map_types) ) {
             mapAttributes.map_types = mapAttributes.map_types.join( ', ' );
         }

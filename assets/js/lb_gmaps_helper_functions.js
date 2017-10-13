@@ -65,7 +65,7 @@ function showMarkerForm( map, marker ) {
     }
 
 
-    markerForm.insertAfter( '#lb-gmaps-fields' );
+    $( '#lb-gmaps-live-preview' ).append( markerForm );
 
     validateMarkerForm( markerForm );
 
@@ -262,17 +262,52 @@ function parseMarkerData( data ) {
 
 function postFormHandler( map, mapAttributes ) {
 
+    handleLivePreviewContainer();
+
+    attachDomReadyEvents();
+
     var input = document.getElementById( 'lb-gmaps-map-markers' );
 
     var autocomplete = new google.maps.places.Autocomplete( input );
 
+    $( '#lb-gmaps-map-fullscreen' ).on( 'change', function ( e ) {
+        if( e.target.checked ) {
+            var el = $( '#lb-gmaps-metabox.postbox' );
+            el.css( {'overflow-y': 'scroll'} );
+            reorder_fields( true );
+            // Supports most browsers and their versions.
+            var requestMethod = el[0].requestFullScreen || el[0].webkitRequestFullScreen
+                || el[0].mozRequestFullScreen || el[0].msRequestFullScreen;
+
+            if (requestMethod) {
+
+                // Native full screen.
+                requestMethod.call(el[0]);
+
+            }
+
+            $( document ).on( 'fullscreenchange webkitfullscreenchange mozfullscreenchange', function () {
+                if ( ! window.screenTop && ! window.screenY ) {
+                    $( '#lb-gmaps-map-fullscreen' ).prop( 'checked', false );
+                    $( '#lb-gmaps-metabox.postbox' ).css( 'overflow-y', 'visible' );
+                }
+            } );
+
+        } else {
+            if ( document.exitFullscreen ) {
+                document.exitFullscreen();
+            } else if ( document.webkitExitFullscreen ) {
+                document.webkitExitFullscreen();
+            } else if ( document.mozCancelFullScreen ) {
+                document.mozCancelFullScreen();
+            } else if ( document.msExitFullscreen ) {
+                document.msExitFullscreen();
+            }
+        }
+    } );
+
     autocomplete.bindTo('bounds', map);
     autocomplete.addListener( 'place_changed', function() {
-        if( ! $( '#lb-gmaps-map-marker-popup' ).is( ':checked' ) ) {
-            var dialog = $( views.dialogBox );
-            dialog.insertAfter( '#lb-gmaps-fields' );
-        }
-
         $( '#yes' ).on( 'click', function () {
             dialog.remove();
             createMarker( map, place.geometry.location );
@@ -321,15 +356,15 @@ function postFormHandler( map, mapAttributes ) {
     $( '#lb-gmaps-map-full-width' ).on( 'change', function ( e ) {
         if( e.target.checked ) {
             $( '#lb-gmaps-map-width' ).parent().fadeOut( 300 );
-            $( '#lb-gmaps-live-preview' ).css( {width: '100%' } );
+            $( '#lb-gmaps-live-preview' ).css( {width: '100%' } ).trigger( 'changeDimensions' );
             mapAttributes.width = '100%';
         } else {
-            $( '#lb-gmaps-map-width' ).parent().fadeIn( 300 );
+            $( '#lb-gmaps-map-width' ).parent().fadeIn( 300 ).css( 'display', 'inline-block' );
             if( $( '#lb-gmaps-map-width' ).val() ) {
-                $( '#lb-gmaps-live-preview' ).css( {width: $( '#lb-gmaps-map-width' ).val() } );
+                $( '#lb-gmaps-live-preview' ).css( {width: $( '#lb-gmaps-map-width' ).val() } ).trigger( 'changeDimensions' );
                 mapAttributes.width = $( '#lb-gmaps-map-width' ).val();
             } else {
-                $( '#lb-gmaps-live-preview' ).css( {width: '50%' } );
+                $( '#lb-gmaps-live-preview' ).css( {width: '50%' } ).trigger( 'changeDimensions' );
                 mapAttributes.width = '50%';
             }
         }
@@ -371,7 +406,7 @@ function postFormHandler( map, mapAttributes ) {
                 map.set( controlType, true );
                 mapAttributes[ dbControlType ] = value;
                 if( 'mapTypeControl' === controlType ) {
-                    mapTypes.parent().fadeIn( 300 );
+                    mapTypes.parent().fadeIn( 300 ).css( 'display', 'inline-block' );
                 }
                 // Check if the corresponding control has already had its options set
                 if( typeof  controlOps === 'object' ) {
@@ -447,25 +482,19 @@ function handleDimensionField( selector, map, mapAttributes ) {
     $( selector ).blur( function ( e ) {
         var field = $( e.target );
         var fieldType = selector.indexOf( 'height' ) !== -1 ? 'height' : 'width';
-        var minWidthInPercents = parseInt( 20000 / screen.width );
-        var minHeightInPercents = parseInt( 20000 / screen.height );
         if( 'height' === fieldType ) {
             if( field.val().indexOf( 'px' ) !== -1 || field.val().indexOf( '%' ) !== -1 ) {
                 if( field.val().indexOf( '%' ) !== -1 ) {
                     if( parseInt( field.val().replace( '%', '' ) ) > 100 ) {
                         field.val( '100%' );
-                    } else if( parseInt( field.val().replace( '%', '' ) ) < minHeightInPercents ) {
-                        field.val( minHeightInPercents + '%' );
                     }
                 }
                 if( field.val().indexOf( 'px' ) !== -1 ) {
                     if( parseInt( field.val().replace( 'px', '' ) ) < 200 ) {
                         field.val( '200px' );
-                    } else if( parseInt( field.val().replace( 'px', '' ) ) > screen.height ) {
-                        field.val( screen.height + 'px' );
                     }
                 }
-                $( '#lb-gmaps-live-preview' ).css( {height: $( e.target ).val() } );
+                $( '#lb-gmaps-live-preview' ).css( {height: $( e.target ).val() } ).trigger( 'changeDimensions' );
             }
             mapAttributes.height = $( e.target ).val();
         } else {
@@ -473,18 +502,14 @@ function handleDimensionField( selector, map, mapAttributes ) {
                 if( field.val().indexOf( '%' ) !== -1 ) {
                     if( parseInt( field.val().replace( '%', '' ) ) > 100 ) {
                         field.val( '100%' );
-                    } else if( parseInt( field.val().replace( '%', '' ) ) < minWidthInPercents ) {
-                        field.val( minWidthInPercents + '%' );
                     }
                 }
                 if( field.val().indexOf( 'px' ) !== -1 ) {
                     if( parseInt( field.val().replace( 'px', '' ) ) < 200 ) {
                         field.val( '200px' );
-                    } else if( parseInt( field.val().replace( 'px', '' ) ) > screen.width ) {
-                        field.val( screen.width + 'px' );
                     }
                 }
-                $( '#lb-gmaps-live-preview' ).css( {width: $( e.target ).val() } );
+                $( '#lb-gmaps-live-preview' ).css( {width: $( e.target ).val() } ).trigger( 'changeDimensions' );
             }
             mapAttributes.width = $( e.target ).val();
         }
@@ -492,6 +517,40 @@ function handleDimensionField( selector, map, mapAttributes ) {
     } );
 }
 
+function reorder_fields( isMapOutBounds ) {
+    if( isMapOutBounds ) {
+        $( '#lb-gmaps-fields' ).addClass( 'reordered-container' );
+        $( '.lb-gmaps-form-group' ).each( ( i, el ) => {
+            $( el ).addClass( 'reordered-field' );
+        } );
+    } else {
+        $( '#lb-gmaps-fields' ).removeClass( 'reordered-container' );
+        $( '.lb-gmaps-form-group' ).each( ( i, el ) => {
+            $( el ).removeClass( 'reordered-field' );
+        } );
+    }
 
+}
 
+function handleLivePreviewContainer() {
+    var mapContainer = $( '#lb-gmaps-live-preview' );
+    mapContainer.on( 'changeDimensions', function ( e ) {
+        if( mapContainer.width() > 0.5 * $( '#lb-gmaps-metabox' ).width() ) {
+            reorder_fields( true );
+        } else {
+            reorder_fields();
+        }
+    } )
+}
 
+function attachDomReadyEvents() {
+    $( document ).ready( function () {
+        if( $( '#lb-gmaps-map-full-width' ).is( ':checked' ) ) {
+            $( '#lb-gmaps-map-width' ).parent().hide();
+        }
+        $( '#lb-gmaps-live-preview' ).trigger( 'changeDimensions' );
+    } );
+
+}
+
+//TODO EXTEND TO FULLSCREEN THE SHITTY METABOX !!!
