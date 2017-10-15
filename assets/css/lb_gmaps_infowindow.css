@@ -79,15 +79,27 @@
     right: 5px;
 }
 
-#edit-lb-gmaps-marker,
-#delete-lb-gmaps-marker {
+#transfer-lb-gmaps-marker {
+    left: 25%;
+}
+
+#lb-gmaps-marker-description span{
     position: absolute;
     bottom: 0;
     margin: 0;
 }
 
-#edit-lb-gmaps-marker:hover,
-#delete-lb-gmaps-marker:hover {
+#lb-gmaps-marker-description span:hover,
+#transfer-buttons span:hover {
     cursor: pointer;
     color: #417DF1;
 }
+
+#transfer-buttons {
+    margin-top: 10px;
+}
+
+#transfer-buttons span {
+    margin: 0 15%;
+}
+

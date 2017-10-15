@@ -139,6 +139,67 @@ function addMarkerClickListener( map, marker, content, infoWindow ) {
                         showMarkerForm( map, marker );
                     } );
 
+                    $( '#transfer-lb-gmaps-marker').on( 'click', function () {
+                        $.ajax( {
+                            method: 'POST',
+                            url: admin.ajaxURL,
+                            data: {
+                                action: 'get_maps_data'
+                            }
+                        } ).then( function ( data ) {
+                            if( data.length && data.length > 1) {
+                                var fields = $( maps.select );
+                                var select = $( fields.find( 'select#maps' ) );
+                                // add ids to an array for security check
+                                var ids = [];
+                                for ( var i = 0; i < data.length; i++ ) {
+                                    if( post.ID != data[ i ].ID ) {
+                                        ids.push( data[ i ].ID );
+                                        select.append( '<option value="' + data[ i ].ID + '" >' + data[ i ].post_title + '</option>' );
+                                    }
+                                }
+                                $( '#lb-gmaps-marker-description' ).hide();
+                                $( '#lb-gmaps-marker-contaier' ).append( fields );
+
+                                $( '#transfer' ).on( 'click', function () {
+                                    var maps = $( '#maps' ).find( 'option:selected' );
+                                    if( maps.length ) {
+                                        for (var i = 0; i < maps.length; i++) {
+                                            var mapId = parseInt( $( maps[ i ] ).val() );
+                                            //Check whether the mapId is in the posts-maps created by the user in the dashboard
+                                            if( -1 !== ids.indexOf( mapId ) ) {
+                                                $.ajax( {
+                                                    method: 'POST',
+                                                    url: admin.ajaxURL,
+                                                    data: {
+                                                        action: 'transfer_marker',
+                                                        marker: parseMarkerData( marker ),
+                                                        map_id: mapId
+                                                    }
+                                                } ).then( function () {
+                                                    //TODO: ADD NOTIFICATION MESSAGES FOR SUCCESS AND FAILURE
+                                                    $( '#transfer-maps-container' ).remove();
+                                                    $( '#lb-gmaps-marker-description' ).show();
+                                                } )
+                                            }
+                                        }
+                                    }
+                                } );
+                                $( '#back' ).on( 'click', function () {
+                                    $( '#transfer-maps-container' ).remove();
+                                    $( '#lb-gmaps-marker-description' ).show();
+                                } );
+                            } else {
+                                $( '#lb-gmaps-marker-description' ).hide();
+                                $( '#lb-gmaps-marker-contaier' ).append( $( '<h2 id="lb-gmaps-not-found">No Maps Found.</h2>' ) );
+                                setTimeout( function () {
+                                    $( '#lb-gmaps-not-found' ).remove();
+                                    $( '#lb-gmaps-marker-description' ).show();
+                                }, 2000 );
+                            }
+                        } );
+                    } );
+
                     $(' #delete-lb-gmaps-marker ').on( 'click', function () {
                         $( '.gm-style-iw' ).parent().remove();
                         google.maps.event.clearListeners( marker, 'click' );
@@ -172,8 +233,9 @@ function addMarkerClickListener( map, marker, content, infoWindow ) {
 function displayInfoWindow( map, marker ) {
     var content = $( views.infoBox );
     if( ! data.frontEnd ) {
-        content.find( '#lb-gmaps-marker-description' ).append( '<span id="edit-lb-gmaps-marker">Edit Marker Info</span>' );
-        content.find( '#lb-gmaps-marker-description' ).append( '<span id="delete-lb-gmaps-marker">Delete Marker</span>' );
+        content.find( '#lb-gmaps-marker-description' ).append( '<span id="edit-lb-gmaps-marker">Edit</span>' );
+        content.find( '#lb-gmaps-marker-description' ).append( '<span id="transfer-lb-gmaps-marker">Transfer to Another Map</span>' );
+        content.find( '#lb-gmaps-marker-description' ).append( '<span id="delete-lb-gmaps-marker">Delete</span>' );
     }
     if( null !== marker.name && null !== marker.content && undefined !== marker.name && undefined !== marker.content) {
         if( null !== marker.name ) {
@@ -272,6 +334,15 @@ function parseMarkerData( data ) {
         lat: parseFloat( data.lat ),
         lng: parseFloat( data.lng )
     };
+    if( undefined === data.lat && data.getPosition ) {
+        markerData.lat = data.getPosition().lat();
+    }
+    if( undefined === data.lng && data.getPosition ) {
+        markerData.lng = data.getPosition().lng();
+    }
+    if( undefined === data.lng ) {
+
+    }
     if( null !== data.name ) {
         markerData.name = data.name;
     }
@@ -581,4 +652,5 @@ function triggerDimensionsEvent() {
     }
 }
 
-//TODO EXTEND TO FULLSCREEN THE SHITTY METABOX !!!
+//TODO: EXTEND TO FULLSCREEN THE SHITTY METABOX !!!
+//TODO: Enrich string translation

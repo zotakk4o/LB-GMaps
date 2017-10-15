@@ -72,6 +72,10 @@ class LB_GMaps_Database_Handler {
 		return $this->get_database()->get_results( $this->get_database()->prepare( "SELECT * FROM $table WHERE post_id = %d", $id ) );
 	}
 
+	public function get_table_rows( $table ) {
+		return $this->get_database()->get_results( "SELECT * FROM $table" );
+	}
+
 	/**
 	 * @return QM_DB|wpdb
 	 */

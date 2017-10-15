@@ -13,8 +13,13 @@
 }
 
 #lb-gmaps-fields::-webkit-scrollbar,
+#maps::-webkit-scrollbar,
 #lb-gmaps-fields #lb-gmaps-map-types::-webkit-scrollbar {
     display: none;
+}
+
+#maps {
+    width: 60%;
 }
 
 .lb-gmaps-form-group {

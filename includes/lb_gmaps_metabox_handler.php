@@ -61,7 +61,9 @@ class LB_GMaps_Metabox_Handler {
 			);
 
 			wp_enqueue_script( 'tinymce_js', includes_url( 'js/tinymce/' ) . 'wp-tinymce.php', array( 'jquery' ), false, true );
-			wp_enqueue_script( 'lb-gmaps-helper-functions', LB_GMAPS_ASSETS . 'js/lb_gmaps_helper_functions.js', array( 'tinymce_js' ) );
+			wp_register_script( 'lb-gmaps-helper-functions', LB_GMAPS_ASSETS . 'js/lb_gmaps_helper_functions.js', array( 'tinymce_js' ) );
+			wp_localize_script( 'lb-gmaps-helper-functions', 'maps', array( 'select' => $this->get_content_of_view( 'marker', 'transfer' ) ) );
+			wp_enqueue_script( 'lb-gmaps-helper-functions' );
 			wp_enqueue_script( 'lb-gmaps-live-preview' );
 			wp_enqueue_script( 'lb-google-map', 'https://maps.googleapis.com/maps/api/js?key=' . get_option( LB_GMAPS_API_KEY ) . '&libraries=places&callback=initMap', array( 'lb-gmaps-live-preview' ) );
 

@@ -26,6 +26,8 @@ class LB_GMaps_Ajaxer {
 		add_action( 'wp_ajax_save_map_data', array( $this, 'save_map_data' ) );
 		add_action( 'wp_ajax_save_marker_data', array( $this, 'save_marker_data' ) );
 		add_action( 'wp_ajax_delete_marker_data', array( $this, 'delete_marker_data' ) );
+		add_action( 'wp_ajax_get_maps_data', array( $this, 'get_maps_data' ) );
+		add_action( 'wp_ajax_transfer_marker', array( $this, 'transfer_marker' ) );
 	}
 
 	public function save_map_data() {
@@ -41,11 +43,33 @@ class LB_GMaps_Ajaxer {
 		wp_die();
 	}
 
+	public function transfer_marker() {
+		if( isset( $_POST['map_id'] ) && isset( $_POST['marker'] ) && ! empty( $_POST['marker'] ) ) {
+			$marker_args = $_POST['marker'];
+			$marker_args['post_id'] = $_POST['map_id'];
+			$marker_args['uniqueness'] = md5( "{$marker_args['lat']}{$marker_args['lng']}{$marker_args['post_id']}" );
+			wp_send_json( $this->get_db_handler()->save_marker( $marker_args ) );
+		}
+		wp_die();
+	}
+
+	public function get_maps_data() {
+		$posts = get_posts( array(
+			'post_type' => LB_GMAPS_POST_TYPE,
+			'posts_per_page' => -1
+		) );
+
+		if( ! empty( $posts ) ) {
+			wp_send_json( $posts );
+		}
+		wp_die();
+	}
+
 	public function save_marker_data() {
 		if( isset( $_POST['marker'] ) && ! empty( $_POST['marker'] ) ) {
 			$marker_args = $_POST['marker'];
 			if( ! isset( $marker_args['uniqueness'] ) ) {
-				$marker_args['uniqueness'] = md5( "{$marker_args['lat']}{$marker_args['lng']}" );
+				$marker_args['uniqueness'] = md5( "{$marker_args['lat']}{$marker_args['lng']}{$marker_args['post_id']}" );
 			}
 			wp_send_json( $this->get_db_handler()->save_marker( $marker_args ) );
 		}
