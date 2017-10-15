@@ -61,20 +61,43 @@ function showMarkerForm( map, marker ) {
         markerForm.find( '#marker_description' ).val( marker.content );
     }
     if( ! marker.hasOwnProperty( 'name' ) && ! marker.hasOwnProperty( 'content' ) ) {
-        $( '<button type="button" id="delete-button">Delete Marker</button>' ).insertAfter( markerForm.find( '#save-button' ) );
+        $( '<button type="button" class="marker-button" id="delete-button">Delete Marker</button>' ).insertAfter( markerForm.find( '#save-button' ) );
     }
 
-
     $( '#lb-gmaps-live-preview' ).append( markerForm );
+
+    tinymce.init({
+        theme: 'modern',
+        selector: '#marker_description',
+        resize: false,
+        setup: function( ed ) {
+            ed.on('blur', function() {
+                var content = ed.getContent();
+                var field = $( '#marker_description' );
+                if( '' === content ) {
+                    field.removeClass( 'valid' );
+                    if( ! field.siblings( '.marker-error' ).length ) {
+                        field.parent().append( '<div class="marker-error">' + errors.emptyField + '</div>' );
+                    }
+                } else {
+                    field.addClass( 'valid' );
+                    field.siblings( '.marker-error' ).remove();
+                }
+                handleSaveButton();
+            });
+        }
+    });
 
     validateMarkerForm( markerForm );
 
     $( '#cancel-button' ).on( 'click', function () {
+        tinymce.get('marker_description').remove();
         markerForm.remove();
         displayInfoWindow( map, marker );
     } );
 
     $( '#save-button' ).on( 'click', function () {
+        tinymce.get('marker_description').remove();
         markerObject.name = $.trim( $( '#marker_name' ).val() );
         markerObject.content = $.trim( $( '#marker_description' ).val() );
         markerForm.remove();
@@ -95,9 +118,10 @@ function showMarkerForm( map, marker ) {
     } );
 
     $( '#delete-button' ).on( 'click', function () {
+        tinymce.get('marker_description').remove();
         marker.setMap( null );
         markerForm.remove();
-    } )
+    } );
 }
 
 function addMarkerClickListener( map, marker, content, infoWindow ) {
@@ -156,7 +180,7 @@ function displayInfoWindow( map, marker ) {
             content.find( '#lb-gmaps-marker-name p' ).text( marker.name );
         }
         if( null !== marker.content ) {
-            content.find( '#lb-gmaps-marker-description p' ).text( marker.content );
+            content.find( '#lb-gmaps-marker-description p' ).html( marker.content );
         }
         var textContent = content[0].outerHTML;
         var infoWindow = new google.maps.InfoWindow( {
@@ -182,15 +206,6 @@ function validateMarkerForm( markerForm ) {
             validateField( $( e.target ), true );
         } );
     }
-
-    function handleSaveButton() {
-        if( formFields.length === $( '.valid' ).length ) {
-            $( '#save-button' ).prop( 'disabled', false );
-        } else {
-            $( '#save-button' ).prop( 'disabled', true );
-        }
-    }
-
     function validateField( field, withErrors ) {
         if( '' === field.val() ) {
             field.removeClass( 'valid' );
@@ -202,6 +217,14 @@ function validateMarkerForm( markerForm ) {
             field.siblings( '.marker-error' ).remove();
         }
         handleSaveButton();
+    }
+}
+
+function handleSaveButton(  ) {
+    if( $( '#lb-gmaps-marker-form' ).find( '.marker-field' ).length === $( '.valid' ).length ) {
+        $( '#save-button' ).prop( 'disabled', false );
+    } else {
+        $( '#save-button' ).prop( 'disabled', true );
     }
 }
 
@@ -280,16 +303,16 @@ function postFormHandler( map, mapAttributes ) {
                 || el[0].mozRequestFullScreen || el[0].msRequestFullScreen;
 
             if (requestMethod) {
-
                 // Native full screen.
                 requestMethod.call(el[0]);
 
             }
 
             $( document ).on( 'fullscreenchange webkitfullscreenchange mozfullscreenchange', function () {
-                if ( ! window.screenTop && ! window.screenY ) {
+                if ( ! isFullScreen() ) {
                     $( '#lb-gmaps-map-fullscreen' ).prop( 'checked', false );
                     $( '#lb-gmaps-metabox.postbox' ).css( 'overflow-y', 'visible' );
+                    $( '#lb-gmaps-live-preview' ).trigger( 'changeDimensions' );
                 }
             } );
 
@@ -308,15 +331,6 @@ function postFormHandler( map, mapAttributes ) {
 
     autocomplete.bindTo('bounds', map);
     autocomplete.addListener( 'place_changed', function() {
-        $( '#yes' ).on( 'click', function () {
-            dialog.remove();
-            createMarker( map, place.geometry.location );
-        } );
-        $( '#no' ).on( 'click',function () {
-            dialog.remove();
-        } );
-
-
         var place = autocomplete.getPlace();
         if ( ! place.geometry ) {
             // User entered the name of a Place that was not suggested and
@@ -356,15 +370,18 @@ function postFormHandler( map, mapAttributes ) {
     $( '#lb-gmaps-map-full-width' ).on( 'change', function ( e ) {
         if( e.target.checked ) {
             $( '#lb-gmaps-map-width' ).parent().fadeOut( 300 );
-            $( '#lb-gmaps-live-preview' ).css( {width: '100%' } ).trigger( 'changeDimensions' );
+            $( '#lb-gmaps-live-preview' ).css( {width: '100%' } );
+            triggerDimensionsEvent();
             mapAttributes.width = '100%';
         } else {
             $( '#lb-gmaps-map-width' ).parent().fadeIn( 300 ).css( 'display', 'inline-block' );
             if( $( '#lb-gmaps-map-width' ).val() ) {
-                $( '#lb-gmaps-live-preview' ).css( {width: $( '#lb-gmaps-map-width' ).val() } ).trigger( 'changeDimensions' );
+                $( '#lb-gmaps-live-preview' ).css( {width: $( '#lb-gmaps-map-width' ).val() } );
+                triggerDimensionsEvent();
                 mapAttributes.width = $( '#lb-gmaps-map-width' ).val();
             } else {
-                $( '#lb-gmaps-live-preview' ).css( {width: '50%' } ).trigger( 'changeDimensions' );
+                $( '#lb-gmaps-live-preview' ).css( {width: '50%' } );
+
                 mapAttributes.width = '50%';
             }
         }
@@ -494,7 +511,8 @@ function handleDimensionField( selector, map, mapAttributes ) {
                         field.val( '200px' );
                     }
                 }
-                $( '#lb-gmaps-live-preview' ).css( {height: $( e.target ).val() } ).trigger( 'changeDimensions' );
+                $( '#lb-gmaps-live-preview' ).css( {height: $( e.target ).val() } );
+                triggerDimensionsEvent();
             }
             mapAttributes.height = $( e.target ).val();
         } else {
@@ -509,7 +527,8 @@ function handleDimensionField( selector, map, mapAttributes ) {
                         field.val( '200px' );
                     }
                 }
-                $( '#lb-gmaps-live-preview' ).css( {width: $( e.target ).val() } ).trigger( 'changeDimensions' );
+                $( '#lb-gmaps-live-preview' ).css( {width: $( e.target ).val() } );
+                triggerDimensionsEvent();
             }
             mapAttributes.width = $( e.target ).val();
         }
@@ -535,7 +554,7 @@ function reorder_fields( isMapOutBounds ) {
 function handleLivePreviewContainer() {
     var mapContainer = $( '#lb-gmaps-live-preview' );
     mapContainer.on( 'changeDimensions', function ( e ) {
-        if( mapContainer.width() > 0.5 * $( '#lb-gmaps-metabox' ).width() ) {
+        if( mapContainer.width() > Math.ceil( 0.5 * $( '#lb-gmaps-metabox:not(.postbox)' ).width() ) ) {
             reorder_fields( true );
         } else {
             reorder_fields();
@@ -548,9 +567,18 @@ function attachDomReadyEvents() {
         if( $( '#lb-gmaps-map-full-width' ).is( ':checked' ) ) {
             $( '#lb-gmaps-map-width' ).parent().hide();
         }
-        $( '#lb-gmaps-live-preview' ).trigger( 'changeDimensions' );
+        triggerDimensionsEvent();
     } );
+}
 
+function isFullScreen() {
+    return window.screenTop && window.screenY;
+}
+
+function triggerDimensionsEvent() {
+    if( ! isFullScreen() ) {
+        $( '#lb-gmaps-live-preview' ).trigger( 'changeDimensions' );
+    }
 }
 
 //TODO EXTEND TO FULLSCREEN THE SHITTY METABOX !!!

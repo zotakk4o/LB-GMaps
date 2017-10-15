@@ -23,7 +23,6 @@
     width: 100%;
 }
 
-#lb-gmaps-marker-dialog,
 #lb-gmaps-marker-form {
     z-index: 999;
     padding: 5px;
@@ -40,16 +39,16 @@
 }
 
 #lb-gmaps-marker-form {
-    width: 30%;
-    height: 29%;
-    left: 35%;
+    width: 50%;
+    height: 45%;
+    left: 25%;
 }
 
 #lb-gmaps-marker-form .marker-error {
     color: red;
 }
 
-#lb-gmaps-marker-form button:disabled:hover {
+#lb-gmaps-marker-form .marker-button:disabled:hover {
     cursor: not-allowed !important;
 }
 
@@ -64,38 +63,29 @@
 }
 
 .lb-gmaps-marker-form-group input,
-.lb-gmaps-marker-form-group textarea,
 .lb-gmaps-form-group input:not([type=checkbox]) {
     width: 95%;
-    resize: none;
 }
 
-#lb-gmaps-marker-dialog .buttons-group,
-#lb-gmaps-marker-form .buttons-group{
+.lb-gmaps-marker-form-group.description textarea{
+    resize:none;
+}
+
+#lb-gmaps-marker-form .buttons-group {
     position: absolute;
     bottom: 5px;
     width: 95%;
 }
 
-#lb-gmaps-marker-dialog button,
-#lb-gmaps-marker-form button{
+#lb-gmaps-marker-form .marker-button {
     background-color: #417DF1;
     color: #FFF;
     border: 1px solid #417DF1;
     border-radius: 40%;
 }
 
-#lb-gmaps-marker-dialog .buttons-group button:hover,
-#lb-gmaps-marker-form .buttons-group button:hover{
+#lb-gmaps-marker-form .buttons-group .marker-button:hover {
     cursor: pointer;
-}
-
-#lb-gmaps-marker-dialog #yes {
-    float: left;
-}
-
-#lb-gmaps-marker-dialog #no {
-    float: right;
 }
 
 #lb-gmaps-fields .lb-gmaps-form-group select,
@@ -103,6 +93,7 @@
 #lb-gmaps-fields .lb-gmaps-form-group input {
     border-radius: 15px;
 }
+
 #lb-gmaps-fields .lb-gmaps-form-group input:not([type=checkbox]) {
     width: 75%;
 }
@@ -136,6 +127,7 @@
     height: 400px !important;
     width: 100% !important;
 }
+
 .reordered-field {
     display: inline-block;
     width: 30%;

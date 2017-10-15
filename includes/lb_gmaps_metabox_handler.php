@@ -41,8 +41,7 @@ class LB_GMaps_Metabox_Handler {
 
 			wp_register_script( 'lb-gmaps-live-preview', LB_GMAPS_ASSETS . 'js/lb_gmaps_live_preview.js', array( 'lb-gmaps-helper-functions' ) );
 			wp_localize_script( 'lb-gmaps-live-preview', 'views',
-				array( 'dialogBox' => $this->get_content_of_view( 'marker', 'dialog' ),
-				       'form' => $this->get_content_of_view( 'marker', 'form' ),
+				array( 'form' => $this->get_content_of_view( 'marker', 'form' ),
 				       'infoBox' => $this->get_content_of_view( 'marker', 'info' )
 				)
 			);
@@ -61,7 +60,8 @@ class LB_GMaps_Metabox_Handler {
 				array( 'emptyField' => __( 'Please fill in this field.' ) )
 			);
 
-			wp_enqueue_script( 'lb-gmaps-helper-functions', LB_GMAPS_ASSETS . 'js/lb_gmaps_helper_functions.js' );
+			wp_enqueue_script( 'tinymce_js', includes_url( 'js/tinymce/' ) . 'wp-tinymce.php', array( 'jquery' ), false, true );
+			wp_enqueue_script( 'lb-gmaps-helper-functions', LB_GMAPS_ASSETS . 'js/lb_gmaps_helper_functions.js', array( 'tinymce_js' ) );
 			wp_enqueue_script( 'lb-gmaps-live-preview' );
 			wp_enqueue_script( 'lb-google-map', 'https://maps.googleapis.com/maps/api/js?key=' . get_option( LB_GMAPS_API_KEY ) . '&libraries=places&callback=initMap', array( 'lb-gmaps-live-preview' ) );
 
