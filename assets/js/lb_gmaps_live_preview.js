@@ -26,12 +26,14 @@ function initMap() {
         }
     }
 
-    ( function ( map, mapAttributes ) {
-        postFormHandler( map, mapAttributes );
-    } )( map, mapAttributes );
+    ( function ( map, mapAttributes, markers ) {
+        postFormHandler( map, mapAttributes, markers );
+    } )( map, mapAttributes, markers );
 
     map.addListener( 'dblclick', function ( event ) {
-        createMarker( map, event.latLng );
+        ( function ( map, markers ) {
+            createMarker( map, event.latLng, markers )
+        } )( map, markers );
     } );
 
     $( '#publish' ).on( 'click', function ( e ) {
@@ -51,22 +53,6 @@ function initMap() {
             }
         } );
     } );
-
-    function createMarker( map, location ) {
-        var marker = new google.maps.Marker({
-            map: map
-        });
-
-        marker.setPosition( location );
-
-        var markerObject = {
-            post_id: post.ID,
-            lat: marker.position.lat(),
-            lng: marker.position.lng()
-        };
-        showMarkerForm( map, marker );
-        markers.push( markerObject );
-    }
 }
 
 //TODO: Add Comments

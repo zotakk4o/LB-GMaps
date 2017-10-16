@@ -66,6 +66,29 @@ function showMarkerForm( map, marker ) {
 
     $( '#lb-gmaps-live-preview' ).append( markerForm );
 
+    if ( $( '#marker-upload-media' ).length > 0 ) {
+        if ( typeof wp !== 'undefined' && wp.media && wp.media.editor ) {
+            $( document ).on( 'click', '#marker-upload-media', function( e ) {
+                if (this.window === undefined) {
+                    this.window = wp.media({
+                        title: 'Insert a marker photo',
+                        library: {type: 'image'},
+                        multiple: false,
+                        button: {text: 'Insert'}
+                    });
+
+                    var self = this; // Needed to retrieve our variable in the anonymous function below
+                    this.window.on('select', function() {
+                        var first = self.window.state().get('selection').first().toJSON();
+                    });
+                }
+
+                this.window.open();
+                return false;
+            });
+        }
+    }
+
     tinymce.init({
         theme: 'modern',
         selector: '#marker_description',
@@ -164,6 +187,7 @@ function addMarkerClickListener( map, marker, content, infoWindow ) {
                                 $( '#transfer' ).on( 'click', function () {
                                     var maps = $( '#maps' ).find( 'option:selected' );
                                     if( maps.length ) {
+                                        var succeeded = 0;
                                         for (var i = 0; i < maps.length; i++) {
                                             var mapId = parseInt( $( maps[ i ] ).val() );
                                             //Check whether the mapId is in the posts-maps created by the user in the dashboard
@@ -176,13 +200,28 @@ function addMarkerClickListener( map, marker, content, infoWindow ) {
                                                         marker: parseMarkerData( marker ),
                                                         map_id: mapId
                                                     }
-                                                } ).then( function () {
-                                                    //TODO: ADD NOTIFICATION MESSAGES FOR SUCCESS AND FAILURE
-                                                    $( '#transfer-maps-container' ).remove();
-                                                    $( '#lb-gmaps-marker-description' ).show();
-                                                } )
+                                                } ).then( function ( data ) {
+                                                    if( data ) {
+                                                        succeeded++;
+                                                    }
+                                                    if( succeeded === maps.length ) {
+                                                        $( '#transfer-maps-container' ).empty().append( '<div class="lb-gmaps-success">' + messages.success + '</div>' );
+                                                        restoreMarkerAfterAjax();
+                                                    } else if( i === maps.length - 1 && succeeded !== maps.length ) {
+                                                        $( '#transfer-maps-container' ).empty().append( '<div class="lb-gmaps-error">' + messages.error + '</div>' );
+                                                        restoreMarkerAfterAjax();
+                                                    }
+                                                } );
                                             }
                                         }
+                                    }
+
+                                    // Remove marker transfer dropdown list and show the description of the marker
+                                    function restoreMarkerAfterAjax() {
+                                        setTimeout( function () {
+                                            $( '#transfer-maps-container' ).remove();
+                                            $( '#lb-gmaps-marker-description' ).show();
+                                        }, 2000 );
                                     }
                                 } );
                                 $( '#back' ).on( 'click', function () {
@@ -354,7 +393,7 @@ function parseMarkerData( data ) {
     return markerData;
 }
 
-function postFormHandler( map, mapAttributes ) {
+function postFormHandler( map, mapAttributes, markers ) {
 
     handleLivePreviewContainer();
 
@@ -417,6 +456,8 @@ function postFormHandler( map, mapAttributes ) {
             map.setCenter( place.geometry.location );
         }
 
+
+
         var address = '';
         if ( place.address_components ) {
             address = [
@@ -425,6 +466,12 @@ function postFormHandler( map, mapAttributes ) {
                 ( place.address_components[2] && place.address_components[2].short_name || '' )
             ].join(' ');
         }
+
+        ( function ( map, markers ) {
+            createMarker( map, place.geometry.location, markers )
+        } )( map, markers );
+
+
     });
 
     $( '#lb-gmaps-map-gesture-handling' ).on( 'change', function ( e ) {
@@ -638,6 +685,13 @@ function attachDomReadyEvents() {
         if( $( '#lb-gmaps-map-full-width' ).is( ':checked' ) ) {
             $( '#lb-gmaps-map-width' ).parent().hide();
         }
+
+        $( '#lb-gmaps-map-markers' ).on( 'keydown', function ( e ) {
+            if( 13 === e.keyCode ) {
+                e.preventDefault();
+            }
+        } );
+
         triggerDimensionsEvent();
     } );
 }
@@ -650,6 +704,22 @@ function triggerDimensionsEvent() {
     if( ! isFullScreen() ) {
         $( '#lb-gmaps-live-preview' ).trigger( 'changeDimensions' );
     }
+}
+
+function createMarker( map, location, markers ) {
+    var marker = new google.maps.Marker({
+        map: map
+    });
+
+    marker.setPosition( location );
+
+    var markerObject = {
+        post_id: post.ID,
+        lat: marker.position.lat(),
+        lng: marker.position.lng()
+    };
+    showMarkerForm( map, marker );
+    markers.push( markerObject );
 }
 
 //TODO: EXTEND TO FULLSCREEN THE SHITTY METABOX !!!

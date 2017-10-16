@@ -5,6 +5,9 @@
 			<input type="text" class="marker-field" name="marker_name" id="marker_name">
 		</label>
 	</div>
+	<div class="lb-gmaps-marker-form-group">
+		<button type="button" id="marker-upload-media" class="button">Add Media</button>
+	</div>
 	<div class="lb-gmaps-marker-form-group description">
 		<label>
 			Description*
