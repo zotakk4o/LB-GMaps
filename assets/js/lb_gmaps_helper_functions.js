@@ -66,13 +66,14 @@ function showMarkerForm( map, marker ) {
 
     var mapContainer = $( '#lb-gmaps-live-preview' );
     var heightVal = parseInt( mapContainer.css( 'height' ).replace( 'px', '' ) );
+    //TODO: FIX OPTION IN %
     var widthVal = parseInt( mapContainer.css( 'width' ).replace( 'px', '' ).replace( '%', '' ) );
 
     if( heightVal < 400 && widthVal <= getMetaboxHalfWidth() ) {
         markerForm.css( { 'left': 'initial', 'bottom': heightVal + 50 + 'px', 'right': 'calc( ( 50% - 280px ) / 2 )' } );
         markerForm.insertBefore( '#lb-gmaps-fields' );
     } else if( heightVal < 400 && widthVal > getMetaboxHalfWidth() ) {
-        markerForm.css( { 'left': 'initial', 'bottom': heightVal + 75 + 'px', 'right': 'calc( ( 100% - 280px ) / 2 )' } );
+        markerForm.css( { 'left': 'initial', 'bottom': '420px', 'right': 'calc( ( 100% - 280px ) / 2 )' } );
         markerForm.insertBefore( '#lb-gmaps-fields' );
     } else {
         mapContainer.append( markerForm );
@@ -752,5 +753,5 @@ function getMetaboxHalfWidth() {
     return Math.ceil( 0.5 * $( '#lb-gmaps-metabox:not(.postbox)' ).width() )
 }
 
-//TODO: EXTEND TO FULLSCREEN THE SHITTY METABOX !!!
+//TODO: FIX HEIGHT FIELD IN PERCENTS AND MARKER FORM STYLING
 //TODO: Enrich string translation
