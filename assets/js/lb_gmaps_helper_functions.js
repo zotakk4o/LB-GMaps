@@ -27,7 +27,7 @@ function styleInfowindow( infowindow ) {
         var iwCloseBtn = iwOuter.next();
 
         // Apply the desired effect to the close button
-        iwCloseBtn.css({opacity: '1', top: '0' , right: '-35px', border: '7px solid #417DF1', 'border-radius': '13px', 'box-shadow': '0 0 5px #3990B9'});
+        iwCloseBtn.css({opacity: '1', top: '0' , right: '-25px', border: '7px solid #417DF1', 'border-radius': '13px', 'box-shadow': '0 0 5px #3990B9'});
         if( data.frontEnd ) {
             iwCloseBtn.css( { width: '27px', height: '27px' } );
         }
@@ -64,7 +64,19 @@ function showMarkerForm( map, marker ) {
         $( '<button type="button" class="marker-button" id="delete-button">Delete Marker</button>' ).insertAfter( markerForm.find( '#save-button' ) );
     }
 
-    $( '#lb-gmaps-live-preview' ).append( markerForm );
+    var mapContainer = $( '#lb-gmaps-live-preview' );
+    var heightVal = parseInt( mapContainer.css( 'height' ).replace( 'px', '' ) );
+    var widthVal = parseInt( mapContainer.css( 'width' ).replace( 'px', '' ).replace( '%', '' ) );
+
+    if( heightVal < 400 && widthVal <= getMetaboxHalfWidth() ) {
+        markerForm.css( { 'left': 'initial', 'bottom': heightVal + 50 + 'px', 'right': 'calc( ( 50% - 280px ) / 2 )' } );
+        markerForm.insertBefore( '#lb-gmaps-fields' );
+    } else if( heightVal < 400 && widthVal > getMetaboxHalfWidth() ) {
+        markerForm.css( { 'left': 'initial', 'bottom': heightVal + 75 + 'px', 'right': 'calc( ( 100% - 280px ) / 2 )' } );
+        markerForm.insertBefore( '#lb-gmaps-fields' );
+    } else {
+        mapContainer.append( markerForm );
+    }
 
     if ( $( '#marker-upload-media' ).length > 0 ) {
         if ( typeof wp !== 'undefined' && wp.media && wp.media.editor ) {
@@ -92,7 +104,7 @@ function showMarkerForm( map, marker ) {
     tinymce.init({
         theme: 'modern',
         selector: '#marker_description',
-        resize: false,
+        resize: true,
         setup: function( ed ) {
             ed.on('blur', function() {
                 var content = ed.getContent();
@@ -205,10 +217,10 @@ function addMarkerClickListener( map, marker, content, infoWindow ) {
                                                         succeeded++;
                                                     }
                                                     if( succeeded === maps.length ) {
-                                                        $( '#transfer-maps-container' ).empty().append( '<div class="lb-gmaps-success">' + messages.success + '</div>' );
+                                                        $( '#transfer-maps-container' ).empty().append( '<div class="lb-gmaps-success">' + messages.markerSuccess + '</div>' );
                                                         restoreMarkerAfterAjax();
                                                     } else if( i === maps.length - 1 && succeeded !== maps.length ) {
-                                                        $( '#transfer-maps-container' ).empty().append( '<div class="lb-gmaps-error">' + messages.error + '</div>' );
+                                                        $( '#transfer-maps-container' ).empty().append( '<div class="lb-gmaps-error">' + messages.markerError + '</div>' );
                                                         restoreMarkerAfterAjax();
                                                     }
                                                 } );
@@ -614,44 +626,52 @@ function handleDimensionField( selector, map, mapAttributes ) {
         }
     } );
 
-    $( selector ).blur( function ( e ) {
-        var field = $( e.target );
-        var fieldType = selector.indexOf( 'height' ) !== -1 ? 'height' : 'width';
-        if( 'height' === fieldType ) {
-            if( field.val().indexOf( 'px' ) !== -1 || field.val().indexOf( '%' ) !== -1 ) {
-                if( field.val().indexOf( '%' ) !== -1 ) {
-                    if( parseInt( field.val().replace( '%', '' ) ) > 100 ) {
-                        field.val( '100%' );
-                    }
-                }
-                if( field.val().indexOf( 'px' ) !== -1 ) {
-                    if( parseInt( field.val().replace( 'px', '' ) ) < 200 ) {
-                        field.val( '200px' );
-                    }
-                }
-                $( '#lb-gmaps-live-preview' ).css( {height: $( e.target ).val() } );
-                triggerDimensionsEvent();
+    $( selector ).on( 'keyup', function ( e ) {
+        clearTimeout( window.fieldHandling );
+        window.fieldHandling = setTimeout( function() {
+            var field = $( e.target );
+            handleField( field );
+
+            if( -1 !== field.attr( 'id' ).indexOf( 'height' ) ) {
+                mapAttributes.height = field.val();
+            } else {
+                mapAttributes.width = field.val();
             }
-            mapAttributes.height = $( e.target ).val();
-        } else {
-            if( field.val().indexOf( 'px' ) !== -1 || field.val().indexOf( '%' ) !== -1 ) {
-                if( field.val().indexOf( '%' ) !== -1 ) {
-                    if( parseInt( field.val().replace( '%', '' ) ) > 100 ) {
-                        field.val( '100%' );
-                    }
-                }
-                if( field.val().indexOf( 'px' ) !== -1 ) {
-                    if( parseInt( field.val().replace( 'px', '' ) ) < 200 ) {
-                        field.val( '200px' );
-                    }
-                }
-                $( '#lb-gmaps-live-preview' ).css( {width: $( e.target ).val() } );
-                triggerDimensionsEvent();
-            }
-            mapAttributes.width = $( e.target ).val();
-        }
-        google.maps.event.trigger( map, 'resize');
+
+            google.maps.event.trigger( map, 'resize' );
+        }, 1000 );
     } );
+}
+
+function handleField( field ) {
+    //TODO: Repalce INDEX OF With REGEXXXXXXX
+    var fieldType = field.attr( 'id' ).indexOf( 'height' ) !== -1 ? 'height' : 'width';
+
+    if( field.val().indexOf( 'px' ) !== -1 || field.val().indexOf( '%' ) !== -1 ) {
+        field.siblings( '.lb-gmaps-dimensions-error' ).remove();
+        $( '#publish' ).prop( 'disabled', 'false' );
+        adjustDimensionsValue( field );
+        $( '#lb-gmaps-live-preview' ).css( fieldType, field.val() );
+        triggerDimensionsEvent();
+    } else {
+        if( ! field.siblings( '.lb-gmaps-dimensions-error' ).length ) {
+            $( '#publish' ).prop( 'disabled', 'true' );
+            field.parent().append( '<div class="lb-gmaps-dimensions-error lb-gmaps-error">' + messages.dimensionsError + '</div>' );
+        }
+    }
+}
+
+function adjustDimensionsValue( field ) {
+    if( field.val().indexOf( '%' ) !== -1 ) {
+        if( parseInt( field.val().replace( '%', '' ) ) > 100 ) {
+            field.val( '100%' );
+        }
+    }
+    if( field.val().indexOf( 'px' ) !== -1 ) {
+        if( parseInt( field.val().replace( 'px', '' ) ) < 200 ) {
+            field.val( '200px' );
+        }
+    }
 }
 
 function reorder_fields( isMapOutBounds ) {
@@ -672,7 +692,7 @@ function reorder_fields( isMapOutBounds ) {
 function handleLivePreviewContainer() {
     var mapContainer = $( '#lb-gmaps-live-preview' );
     mapContainer.on( 'changeDimensions', function ( e ) {
-        if( mapContainer.width() > Math.ceil( 0.5 * $( '#lb-gmaps-metabox:not(.postbox)' ).width() ) ) {
+        if( mapContainer.width() > getMetaboxHalfWidth() ) {
             reorder_fields( true );
         } else {
             reorder_fields();
@@ -681,6 +701,12 @@ function handleLivePreviewContainer() {
 }
 
 function attachDomReadyEvents() {
+    $( window ).resize( function () {
+        clearTimeout( window.dimensionResizing );
+        window.dimensionResizing = setTimeout( function(){
+            triggerDimensionsEvent();
+        }, 250 );
+    } );
     $( document ).ready( function () {
         if( $( '#lb-gmaps-map-full-width' ).is( ':checked' ) ) {
             $( '#lb-gmaps-map-width' ).parent().hide();
@@ -720,6 +746,10 @@ function createMarker( map, location, markers ) {
     };
     showMarkerForm( map, marker );
     markers.push( markerObject );
+}
+
+function getMetaboxHalfWidth() {
+    return Math.ceil( 0.5 * $( '#lb-gmaps-metabox:not(.postbox)' ).width() )
 }
 
 //TODO: EXTEND TO FULLSCREEN THE SHITTY METABOX !!!

@@ -64,8 +64,9 @@ class LB_GMaps_Metabox_Handler {
 			wp_register_script( 'lb-gmaps-helper-functions', LB_GMAPS_ASSETS . 'js/lb_gmaps_helper_functions.js', array( 'tinymce_js' ) );
 			wp_localize_script( 'lb-gmaps-helper-functions', 'maps', array( 'select' => $this->get_content_of_view( 'marker', 'transfer' ) ) );
 			wp_localize_script( 'lb-gmaps-helper-functions', 'messages', array(
-				'success' => __( 'Markers Successfully transferred.', 'lb-gmaps' ),
-				'error' => __( 'Some Markers didn\'t transfer successfully.', 'lb-gmaps' )
+				'markerSuccess' => __( 'Markers Successfully transferred.', 'lb-gmaps' ),
+				'markerError' => __( 'Some Markers didn\'t transfer successfully.', 'lb-gmaps' ),
+				'dimensionsError' => __( 'Missing "%" or "px"', 'lb-gmaps' )
 			) );
 			wp_enqueue_script( 'lb-gmaps-helper-functions' );
 			wp_enqueue_script( 'lb-gmaps-live-preview' );

@@ -34,10 +34,7 @@ class LB_GMaps_Shortcode_Handler {
 					'markers' => $markers_data
 				) );
 				wp_localize_script( 'lb-gmaps-front-end', 'views',
-					array( 'dialogBox' => $this->get_content_of_view( 'marker', 'dialog' ),
-					       'form' => $this->get_content_of_view( 'marker', 'form' ),
-					       'infoBox' => $this->get_content_of_view( 'marker', 'info' )
-					)
+					array( 'infoBox' => $this->get_content_of_view( 'marker', 'info' ) )
 				);
 			}
 			wp_enqueue_script( 'lb-gmaps-front-end' );
