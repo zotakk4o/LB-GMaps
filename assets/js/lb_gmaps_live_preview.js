@@ -43,6 +43,7 @@ function initMap() {
         if( mapAttributes.hasOwnProperty( 'map_types' ) && Array.isArray( mapAttributes.map_types) ) {
             mapAttributes.map_types = mapAttributes.map_types.join( ', ' );
         }
+        mapAttributes.gesture_handling = map.get( 'gestureHandling' );
         $.ajax( {
             type: "POST",
             url: admin.ajaxURL,

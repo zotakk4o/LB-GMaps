@@ -66,8 +66,7 @@ function showMarkerForm( map, marker ) {
 
     var mapContainer = $( '#lb-gmaps-live-preview' );
     var heightVal = parseInt( mapContainer.css( 'height' ).replace( 'px', '' ) );
-    //TODO: FIX OPTION IN %
-    var widthVal = parseInt( mapContainer.css( 'width' ).replace( 'px', '' ).replace( '%', '' ) );
+    var widthVal = parseInt( mapContainer.css( 'width' ).replace( 'px', '' ) );
 
     if( heightVal < 400 && widthVal <= getMetaboxHalfWidth() ) {
         markerForm.css( { 'left': 'initial', 'bottom': heightVal + 50 + 'px', 'right': 'calc( ( 50% - 280px ) / 2 )' } );
@@ -407,7 +406,6 @@ function parseMarkerData( data ) {
 }
 
 function postFormHandler( map, mapAttributes, markers ) {
-
     handleLivePreviewContainer();
 
     attachDomReadyEvents();
@@ -612,16 +610,16 @@ function handleDimensionField( selector, map, mapAttributes ) {
     $( selector ).on( 'keydown', function ( e ) {
         var val = parseInt( $( e.target ).val().replace( 'px', '' ).replace( '%', '' ) );
         if( 40 === e.keyCode ) {
-            if( $( e.target ).val().indexOf( 'px' ) !== -1 ) {
+            if( $( e.target ).val().match( /^[0-9]+px$/ ) ) {
                 $( e.target ).val( val - 1 + 'px' );
-            } else {
+            } else if( $( e.target ).val().match( /^[0-9]+%$/ ) ) {
                 $( e.target ).val( val - 1 + '%' );
             }
         }
         if( 38 === e.keyCode ) {
-            if( $( e.target ).val().indexOf( 'px' ) !== -1 ) {
+            if( $( e.target ).val().match( /^[0-9]+px$/ ) ) {
                 $( e.target ).val( val + 1 + 'px' );
-            } else {
+            } else if ( $( e.target ).val().match( /^[0-9]+%$/ )  ) {
                 $( e.target ).val( val + 1 + '%' );
             }
         }
@@ -640,15 +638,14 @@ function handleDimensionField( selector, map, mapAttributes ) {
             }
 
             google.maps.event.trigger( map, 'resize' );
-        }, 1000 );
+        }, 500 );
     } );
 }
 
 function handleField( field ) {
-    //TODO: Repalce INDEX OF With REGEXXXXXXX
     var fieldType = field.attr( 'id' ).indexOf( 'height' ) !== -1 ? 'height' : 'width';
 
-    if( field.val().indexOf( 'px' ) !== -1 || field.val().indexOf( '%' ) !== -1 ) {
+    if( field.val().match( /^[0-9]+(px|%)$/ ) ) {
         field.siblings( '.lb-gmaps-dimensions-error' ).remove();
         $( '#publish' ).prop( 'disabled', 'false' );
         adjustDimensionsValue( field );
@@ -663,12 +660,11 @@ function handleField( field ) {
 }
 
 function adjustDimensionsValue( field ) {
-    if( field.val().indexOf( '%' ) !== -1 ) {
+    if( field.val().match( /^[0-9]+%$/ ) ) {
         if( parseInt( field.val().replace( '%', '' ) ) > 100 ) {
             field.val( '100%' );
         }
-    }
-    if( field.val().indexOf( 'px' ) !== -1 ) {
+    } else if( field.val().match( /^[0-9]+px$/ ) ) {
         if( parseInt( field.val().replace( 'px', '' ) ) < 200 ) {
             field.val( '200px' );
         }
@@ -752,6 +748,7 @@ function createMarker( map, location, markers ) {
 function getMetaboxHalfWidth() {
     return Math.ceil( 0.5 * $( '#lb-gmaps-metabox:not(.postbox)' ).width() )
 }
+
 
 //TODO: FIX HEIGHT FIELD IN PERCENTS AND MARKER FORM STYLING
 //TODO: Enrich string translation
