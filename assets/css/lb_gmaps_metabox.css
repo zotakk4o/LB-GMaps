@@ -156,3 +156,27 @@ div.lb-gmaps-dimensions-error {
     top: -10px;
     left: calc( 50% + 10px );
 }
+
+#lb-gmaps-context-menu {
+    position: absolute;
+    color: black;
+    background-color: white;
+    width: 175px;
+}
+
+#lb-gmaps-context-menu #direction-options {
+    width: 100%;
+    margin: 0;
+}
+
+#lb-gmaps-context-menu #direction-options li {
+    width: calc( 100% - 12px );
+    padding: 12px 0 12px 12px;
+    margin: 0;
+}
+
+#lb-gmaps-context-menu #direction-options li:hover {
+    cursor: pointer;
+    box-shadow: 2px 3px 10px #417DF1;
+
+}

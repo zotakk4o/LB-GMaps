@@ -17,14 +17,19 @@ function initMap() {
         });
     }
 
+    var mapMarkers = [];
+
     for ( var i = 0; i < data.markers.length; i++ ) {
         if( 'object' === typeof data.markers[ i ] ) {
             var marker = new google.maps.Marker( parseMarkerData( data.markers[ i ] ) );
             marker.setPosition( new google.maps.LatLng( marker.lat , marker.lng ) );
             marker.setMap( map );
             displayInfoWindow( map, marker );
+            mapMarkers.push( marker );
         }
     }
+
+    mapDirections( map, mapMarkers );
 
     ( function ( map, mapAttributes, markers ) {
         postFormHandler( map, mapAttributes, markers );
@@ -37,6 +42,8 @@ function initMap() {
     } );
 
     $( '#publish' ).on( 'click', function ( e ) {
+        e.preventDefault();
+        console.log(markers);
         mapAttributes.lat = map.getCenter().lat();
         mapAttributes.lng = map.getCenter().lng();
         mapAttributes.zoom = map.getZoom();
@@ -396,7 +403,6 @@ function attachDomReadyEvents() {
                 e.preventDefault();
             }
         } );
-
         triggerDimensionsEvent();
     } );
 }
@@ -434,4 +440,3 @@ function getMetaboxHalfWidth() {
 //TODO: FIX HEIGHT FIELD IN PERCENTS AND MARKER FORM STYLING
 //TODO: Enrich string translation
 //TODO: Add Comments
-//TODO: Work on the Rotate Option

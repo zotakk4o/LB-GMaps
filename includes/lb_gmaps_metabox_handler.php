@@ -68,6 +68,9 @@ class LB_GMaps_Metabox_Handler {
 				'markerError' => __( 'Some Markers didn\'t transfer successfully.', 'lb-gmaps' ),
 				'dimensionsError' => __( 'Missing "%" or "px"', 'lb-gmaps' )
 			) );
+			wp_localize_script( 'lb-gmaps-helper-functions', 'helperViews',
+				array( 'contextMenu' => $this->get_content_of_view( 'map', 'contextmenu' ) )
+			);
 			wp_enqueue_script( 'lb-gmaps-helper-functions' );
 			wp_enqueue_script( 'lb-gmaps-live-preview' );
 			wp_enqueue_script( 'lb-google-map', 'https://maps.googleapis.com/maps/api/js?key=' . get_option( LB_GMAPS_API_KEY ) . '&libraries=places&callback=initMap', array( 'lb-gmaps-live-preview' ) );
@@ -105,12 +108,7 @@ class LB_GMaps_Metabox_Handler {
 	}
 
 	private function get_content_of_view( $view_type, $view_name ) {
-		switch ( $view_type ) {
-			case 'marker':
-				return file_get_contents( LB_GMAPS_VIEWS . "lb_gmaps_marker_$view_name.php" );
-			default:
-				return __( 'View Type Not Found', 'lb-gmaps' );
-		}
+		return file_get_contents( LB_GMAPS_VIEWS . "lb_gmaps_{$view_type}_{$view_name}.php" );
 	}
 
 	/**

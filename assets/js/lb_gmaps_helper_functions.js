@@ -153,9 +153,7 @@ function showMarkerForm( map, marker ) {
     } );
 
     $( '#delete-button' ).on( 'click', function () {
-        tinymce.get('marker_description').remove();
-        marker.setMap( null );
-        markerForm.remove();
+        deleteMarker( marker );
     } );
 }
 
@@ -251,26 +249,8 @@ function addMarkerClickListener( map, marker, content, infoWindow ) {
                         } );
                     } );
 
-                    $(' #delete-lb-gmaps-marker ').on( 'click', function () {
-                        $( '.gm-style-iw' ).parent().remove();
-                        google.maps.event.clearListeners( marker, 'click' );
-                        var markerObject = {
-                            uniqueness: marker.uniqueness,
-                            lat: marker.position.lat(),
-                            lng: marker.position.lng()
-                        };
-                        $.ajax( {
-                            type: 'POST',
-                            url: admin.ajaxURL,
-                            data: {
-                                action: 'delete_marker_data',
-                                marker: markerObject
-                            }
-                        } ).then( function ( data ) {
-                            if( data ) {
-                                marker.setMap( null );
-                            }
-                        } )
+                    $( '#delete-lb-gmaps-marker' ).on( 'click', function () {
+                        deleteMarker( marker );
                     } )
                 }
             } else {
@@ -279,6 +259,28 @@ function addMarkerClickListener( map, marker, content, infoWindow ) {
 
         };
     } )( marker, content, infoWindow) );
+}
+
+function deleteMarker( marker ) {
+    $( '.gm-style-iw' ).parent().remove();
+    google.maps.event.clearListeners( marker, 'click' );
+    var markerObject = {
+        uniqueness: marker.uniqueness,
+        lat: marker.position.lat(),
+        lng: marker.position.lng()
+    };
+    $.ajax( {
+        type: 'POST',
+        url: admin.ajaxURL,
+        data: {
+            action: 'delete_marker_data',
+            marker: markerObject
+        }
+    } ).then( function ( data ) {
+        tinymce.get('marker_description').remove();
+        marker.setMap( null );
+        $( '#lb-gmaps-marker-form' ).remove();
+    } )
 }
 
 function displayInfoWindow( map, marker ) {
@@ -372,4 +374,147 @@ function parseMarkerData( data ) {
     }
 
     return markerData;
+}
+
+function mapDirections( map, markers ) {
+    var directionTo = false;
+    var directionFrom = true;
+
+    var directionsService = new google.maps.DirectionsService;
+    var directionsDisplay = new google.maps.DirectionsRenderer;
+
+    var startLatLng = null;
+    var endLatLng = null;
+
+    var mapContainer = $( map.getDiv() );
+
+    var overlay = new google.maps.OverlayView();
+    overlay.draw = function() {};
+    overlay.setMap(map);
+
+
+
+    google.maps.event.addListener( map, 'rightclick', function ( event ) {
+
+        if( event.hasOwnProperty( 'uniqueness' ) ) {
+            var lpx =  overlay.getProjection().fromLatLngToContainerPixel( event.getPosition() );
+            rightClickEvent( {
+                latLng: event.getPosition(),
+                pixel: lpx,
+                marker: event
+            } );
+        } else {
+            rightClickEvent( event );
+        }
+    } );
+
+    for ( var i = 0; i < markers.length; i++ ) {
+        var marker = markers[i];
+        google.maps.event.addListener( marker, 'rightclick', function () {
+            google.maps.event.trigger( map, 'rightclick', this);
+        } );
+    }
+
+    google.maps.event.addListener( map, 'click', function () {
+        $( '#lb-gmaps-context-menu' ).remove();
+    } );
+
+    function rightClickEvent( event ) {
+
+        mapContainer.find( '#lb-gmaps-context-menu' ).remove();
+        var menu = $( helperViews.contextMenu );
+
+        if( ! directionFrom ) {
+            menu.find( '#direction-from' ).remove();
+        }
+
+        if( ! directionTo ) {
+            menu.find( '#direction-to' ).remove();
+        }
+
+        mapContainer.append( menu );
+        styleContextMenu( menu, mapContainer, event );
+
+        handleDirectionOptions( event.latLng );
+    }
+
+    function styleContextMenu( menu, mapContainer, event ) {
+        menu.css( {
+            'left': event.pixel.x,
+            'top': event.pixel.y
+        } );
+
+        if( menu.width() + event.pixel.x > mapContainer.width() ) {
+            menu.css( {
+                'left': event.pixel.x - menu.width()
+            } );
+        }
+        if( menu.height() + event.pixel.y > mapContainer.height() ) {
+            menu.css( {
+                'top': event.pixel.y - menu.height()
+            } );
+        }
+    }
+
+    function handleDirectionOptions( latLng ) {
+        $( '#direction-to' ).on( 'click', function () {
+            directionFrom = ! directionFrom;
+            directionTo = ! directionTo;
+
+            endLatLng = latLng;
+
+            handleRoute();
+
+            $( '#lb-gmaps-context-menu' ).remove();
+        } );
+
+        $( '#direction-from' ).on( 'click',function () {
+           directionFrom = ! directionFrom;
+           directionTo = ! directionTo;
+
+           startLatLng = latLng;
+
+           handleRoute();
+
+            $( '#lb-gmaps-context-menu' ).remove();
+        } );
+
+        $( '#clear-directions' ).on( 'click', function () {
+            directionTo = false;
+            directionFrom = true;
+
+            directionsDisplay.setMap(null); // clear direction from the map
+            directionsDisplay.setPanel(null); // clear directionpanel from the map
+            directionsDisplay = new google.maps.DirectionsRenderer; // this is to render again, otherwise your route wont show for the second time searching
+            directionsDisplay.setMap(map); //this is to set up again
+
+            google.maps.event.trigger( map, 'resize' );
+
+            $( '#lb-gmaps-context-menu' ).remove();
+        } );
+
+        function handleRoute() {
+           if( startLatLng && endLatLng ) {
+
+               directionsDisplay.setMap( map );
+               directionsDisplay.setOptions( {suppressMarkers: true} );
+
+               directionsService.route( {
+                   origin: startLatLng,
+                   destination: endLatLng,
+                   travelMode: 'DRIVING'
+               }, function( response, status ) {
+                   if ( 'OK' === status ) {
+                       directionsDisplay.setDirections( response );
+                       var routeLegs = response['routes'][0]['legs'];
+                       //TODO: ADD MARKERS FOR THESE LEGS!!
+                   } else {
+                       window.alert( 'Directions request failed due to ' + status );
+                   }
+                   startLatLng = null;
+                   endLatLng = null;
+               } );
+           }
+        }
+    }
 }
