@@ -407,16 +407,6 @@ function attachDomReadyEvents() {
     } );
 }
 
-function isFullScreen() {
-    return window.screenTop && window.screenY;
-}
-
-function triggerDimensionsEvent() {
-    if( ! isFullScreen() ) {
-        $( '#lb-gmaps-live-preview' ).trigger( 'changeDimensions' );
-    }
-}
-
 function createMarker( map, location, markers ) {
     var marker = new google.maps.Marker({
         map: map
@@ -431,6 +421,16 @@ function createMarker( map, location, markers ) {
     };
     showMarkerForm( map, marker );
     markers.push( markerObject );
+}
+
+function isFullScreen() {
+    return window.screenTop && window.screenY;
+}
+
+function triggerDimensionsEvent() {
+    if( ! isFullScreen() ) {
+        $( '#lb-gmaps-live-preview' ).trigger( 'changeDimensions' );
+    }
 }
 
 function getMetaboxHalfWidth() {
