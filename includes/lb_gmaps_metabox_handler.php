@@ -66,17 +66,21 @@ class LB_GMaps_Metabox_Handler {
 			wp_localize_script( 'lb-gmaps-helper-functions', 'messages', array(
 				'markerSuccess' => __( 'Marker Successfully transferred.', 'lb-gmaps' ),
 				'markerError' => __( 'Some Maps didn\'t receive the marker successfully.', 'lb-gmaps' ),
-				'dimensionsError' => __( 'Missing "%" or "px"', 'lb-gmaps' )
+				'dimensionsError' => __( 'Missing "%" or "px"', 'lb-gmaps' ),
+				'transitMode' => __( 'Public transport routing not available with waypoints', 'lb-gmaps' )
 			) );
 			wp_localize_script( 'lb-gmaps-helper-functions', 'helperViews',
-				array( 'contextMenu' => $this->get_content_of_view( 'map', 'contextmenu' ) )
-			);
+				array(
+					'contextMenu' => $this->get_content_of_view( 'map', 'contextmenu' ),
+					'travelModes' => $this->get_content_of_view( 'map', 'directions_type' ))
+			);;
 			wp_enqueue_script( 'lb-gmaps-helper-functions' );
 			wp_enqueue_script( 'lb-gmaps-live-preview' );
 			wp_enqueue_script( 'lb-google-map', 'https://maps.googleapis.com/maps/api/js?key=' . get_option( LB_GMAPS_API_KEY ) . '&libraries=places&callback=initMap', array( 'lb-gmaps-live-preview' ) );
 
 			wp_enqueue_style( 'lb-gmaps-metabox', LB_GMAPS_ASSETS . 'css/lb_gmaps_metabox.css' );
 			wp_enqueue_style( 'lb-gmaps-infowindow', LB_GMAPS_ASSETS . 'css/lb_gmaps_infowindow.css' );
+			wp_enqueue_style('font-awesome', '//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');
 
 			wp_enqueue_media ();
 		}
