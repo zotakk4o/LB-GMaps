@@ -70,7 +70,7 @@ function showMarkerForm( map, marker ) {
     var widthVal = parseInt( mapContainer.css( 'width' ).replace( 'px', '' ) );
 
     if( heightVal < 400 && widthVal <= getMetaboxHalfWidth() ) {
-        markerForm.css( { 'left': 'initial', 'bottom': heightVal + 50 + 'px', 'right': 'calc( ( 50% - 280px ) / 2 )' } );
+        markerForm.css( { 'left': 'initial', 'bottom': heightVal + 50 + 'px', 'right': 'calc( ( 60% - 280px ) / 2 )' } );
         markerForm.insertBefore( '#lb-gmaps-fields' );
     } else if( heightVal < 400 && widthVal > getMetaboxHalfWidth() ) {
         markerForm.css( { 'left': 'initial', 'bottom': '420px', 'right': 'calc( ( 100% - 280px ) / 2 )' } );
@@ -377,363 +377,362 @@ function parseMarkerData( data ) {
     return markerData;
 }
 
-function mapDirections( map, markers ) {
-    var directionTo = false;
-    var directionFrom = true;
-
-    var bothButtonsClicked = 0;
-
-    var directionsService = new google.maps.DirectionsService;
-    var directionsDisplay = new google.maps.DirectionsRenderer;
-
-    var newStartEvent = {};
-    var newEndEvent = {};
-    var startEvent;
-    var endEvent;
-
-    var mapContainer = $( map.getDiv() );
-
-    var newMarkers = [];
-    var infowindow;
-    var waypoints = [];
-    var waypointsDuplicate = [];
-    var polyline;
-
-    var overlay = new google.maps.OverlayView();
-    overlay.draw = function() {};
-    overlay.setMap( map );
-
-    google.maps.event.addListener( map, 'rightclick', function ( event ) {
-
-        if( event.hasOwnProperty( 'uniqueness' ) ) {
-            var lpx =  overlay.getProjection().fromLatLngToContainerPixel( event.getPosition() );
-            rightClickEvent( {
-                isMarker: event.isMarker,
-                latLng: event.getPosition(),
-                pixel: lpx,
-                marker: event
-            } );
-        } else {
-            rightClickEvent( event );
+function mapDirections( map, markers, options ) {
+    if( options.disableDirections ) {
+        google.maps.event.clearListeners( map , 'rightclick' );
+        for ( var i = 0; i < markers.length; i++ ) {
+            google.maps.event.clearListeners( markers[ i ] , 'rightclick' );
         }
-    } );
+    } else {
+        var directionTo = false;
+        var directionFrom = true;
 
-    for ( var i = 0; i < markers.length; i++ ) {
-        google.maps.event.addListener( markers[ i ], 'rightclick', function () {
-            this.isMarker = true;
-            google.maps.event.trigger( map, 'rightclick', this);
-        } );
-    }
+        var bothButtonsClicked = 0;
 
-    google.maps.event.addListener( map, 'click', function () {
-        $( '#lb-gmaps-context-menu' ).remove();
-    } );
+        var directionsService = new google.maps.DirectionsService;
+        var directionsDisplay = new google.maps.DirectionsRenderer;
 
-    google.maps.event.addListener( map, 'zoom_changed', function () {
-        if( map.getZoom() < 14 ) {
-            $( '.gm-style-iw' ).parent().hide();
-        } else {
-            $( '.gm-style-iw' ).parent().show();
-        }
-    } );
+        var newStartEvent = {};
+        var newEndEvent = {};
+        var startEvent;
+        var endEvent;
 
-    function rightClickEvent( event ) {
-        mapContainer.find( '#lb-gmaps-context-menu' ).remove();
-        var menu = $( helperViews.contextMenu );
+        var mapContainer = $( map.getDiv() );
 
-        if( ! directionFrom ) {
-            menu.find( '#direction-from' ).remove();
-        }
+        var newMarkers = [];
+        var infowindow;
+        var waypoints = [];
+        var waypointsDuplicate = [];
+        var polyline;
 
-        if( ! directionTo ) {
-            menu.find( '#direction-to' ).remove();
-        }
+        var overlay = new google.maps.OverlayView();
+        overlay.draw = function() {};
+        overlay.setMap( map );
 
-        if( ! polyline || menu.find( '#direction-to' ).length > 0 ) {
-            menu.find( '#add-waypoint' ).remove();
-        }
+        google.maps.event.addListener( map, 'rightclick', function ( event ) {
 
-        mapContainer.append( menu );
-
-        styleContextMenu( menu, mapContainer, event );
-
-        handleDirectionOptions( event );
-    }
-
-    function styleContextMenu( menu, mapContainer, event ) {
-        menu.css( {
-            'left': event.pixel.x,
-            'top': event.pixel.y
+            if( event.hasOwnProperty( 'uniqueness' ) ) {
+                var lpx =  overlay.getProjection().fromLatLngToContainerPixel( event.getPosition() );
+                rightClickEvent( {
+                    isMarker: event.isMarker,
+                    latLng: event.getPosition(),
+                    pixel: lpx,
+                    marker: event
+                } );
+            } else {
+                rightClickEvent( event );
+            }
         } );
 
-        if( menu.width() + event.pixel.x > mapContainer.width() ) {
-            menu.css( {
-                'left': event.pixel.x - menu.width()
+        for ( var i = 0; i < markers.length; i++ ) {
+            google.maps.event.addListener( markers[ i ], 'rightclick', function () {
+                this.isMarker = true;
+                google.maps.event.trigger( map, 'rightclick', this);
             } );
         }
-        if( menu.height() + event.pixel.y > mapContainer.height() ) {
-            menu.css( {
-                'top': event.pixel.y - menu.height()
-            } );
-        }
-    }
 
-    function handleDirectionOptions( event ) {
-
-        $( '#direction-to' ).on( 'click', function () {
-            directionFrom = ! directionFrom;
-            directionTo = ! directionTo;
-
-            bothButtonsClicked++;
-
-            newEndEvent = event;
-
-            handleRoute();
-
+        google.maps.event.addListener( map, 'click', function () {
             $( '#lb-gmaps-context-menu' ).remove();
         } );
 
-        $( '#direction-from' ).on( 'click',function () {
-           directionFrom = ! directionFrom;
-           directionTo = ! directionTo;
+        function rightClickEvent( event ) {
+            mapContainer.find( '#lb-gmaps-context-menu' ).remove();
+            var menu = $( helperViews.contextMenu );
 
-           bothButtonsClicked++;
-
-           newStartEvent = event;
-
-           handleRoute();
-
-            $( '#lb-gmaps-context-menu' ).remove();
-        } );
-
-        $( '#clear-directions' ).on( 'click', function ( e ) {
-            directionTo = false;
-            directionFrom = true;
-
-            bothButtonsClicked = 0;
-            if( 0 !== $( e.target ).siblings( '#direction-from' ).length ) {
-                waypoints = [];
-                newMarkers.map( m => m.setMap( null ) );
-                if( polyline ) {
-                    polyline.setMap( null );
-                    polyline = undefined;
-                }
-                if( infowindow ) {
-                    infowindow.setMap( null );
-                    infowindow = undefined;
-                }
-
-                $( '#lb-gmaps-directions-type' ).remove();
-
-                directionsDisplay.setMap( null ); // clear direction from the map
-                directionsDisplay = new google.maps.DirectionsRenderer; // this is to render again, otherwise your route wont show for the second time searching
-                directionsDisplay.setMap( map ); //this is to set up again
-
-                google.maps.event.trigger( map, 'resize' );
+            if( ! directionFrom ) {
+                menu.find( '#direction-from' ).remove();
             }
 
-            $( '#lb-gmaps-context-menu' ).remove();
-        } );
+            if( ! directionTo ) {
+                menu.find( '#direction-to' ).remove();
+            }
 
-        $( '#add-waypoint' ).on( 'click', function () {
-            waypoints.push( {
-                location: event.latLng,
+            if( ! polyline || menu.find( '#direction-to' ).length > 0 ) {
+                menu.find( '#add-waypoint' ).remove();
+            }
+
+            mapContainer.append( menu );
+
+            styleContextMenu( menu, mapContainer, event );
+
+            handleDirectionOptions( event );
+        }
+
+        function styleContextMenu( menu, mapContainer, event ) {
+            menu.css( {
+                'left': event.pixel.x,
+                'top': event.pixel.y
             } );
-            waypointsDuplicate.push( {
-                location: event.latLng,
-                isMarker: event.isMarker
+
+            if( menu.width() + event.pixel.x > mapContainer.width() ) {
+                menu.css( {
+                    'left': event.pixel.x - menu.width()
+                } );
+            }
+            if( menu.height() + event.pixel.y > mapContainer.height() ) {
+                menu.css( {
+                    'top': event.pixel.y - menu.height()
+                } );
+            }
+        }
+
+        function handleDirectionOptions( event ) {
+
+            $( '#direction-to' ).on( 'click', function () {
+                directionFrom = ! directionFrom;
+                directionTo = ! directionTo;
+
+                bothButtonsClicked++;
+
+                newEndEvent = event;
+
+                handleRoute();
+
+                $( '#lb-gmaps-context-menu' ).remove();
             } );
 
-            handleRoute( waypoints );
+            $( '#direction-from' ).on( 'click',function () {
+                directionFrom = ! directionFrom;
+                directionTo = ! directionTo;
 
-            $( '#lb-gmaps-context-menu' ).remove();
-        } );
+                bothButtonsClicked++;
 
-        function handleRoute( waypts, travelMode ) {
-           if( 2 === bothButtonsClicked || waypts && 1 !== bothButtonsClicked || travelMode && 1 !== bothButtonsClicked ) {
-               if( ! travelMode ) {
-                   travelMode = 'DRIVING';
-               }
+                newStartEvent = event;
 
-               if( bothButtonsClicked ) {
-                   waypoints = [];
-                   startEvent = newStartEvent;
-                   endEvent = newEndEvent;
-               }
+                handleRoute();
 
-               directionsDisplay.setMap( map );
-               directionsDisplay.setOptions( {suppressMarkers: true} );
+                $( '#lb-gmaps-context-menu' ).remove();
+            } );
 
-               var request = {
-                   origin: startEvent.latLng,
-                   destination: endEvent.latLng,
-                   travelMode: travelMode
-               };
+            $( '#clear-directions' ).on( 'click', function ( e ) {
+                directionTo = false;
+                directionFrom = true;
 
-               if( waypts ) {
-                   request.waypoints = waypts;
-               }
+                bothButtonsClicked = 0;
+                if( 0 !== $( e.target ).siblings( '#direction-from' ).length ) {
+                    waypoints = [];
+                    newMarkers.map( m => m.setMap( null ) );
+                    if( polyline ) {
+                        polyline.setMap( null );
+                        polyline = undefined;
+                    }
+                    if( infowindow ) {
+                        infowindow.setMap( null );
+                        infowindow = undefined;
+                    }
 
-               directionsService.route( request , function( response, status ) {
-                   if ( 'OK' === status ) {
-                       if ( ! waypts || waypts && 0 === waypts.length) {
-                           newMarkers.map( m => m.setMap( null ) );
-                       }
-                       if ( polyline ) {
-                           polyline.setMap( null );
-                           polyline = undefined;
-                       }
+                    $( '#lb-gmaps-directions-type' ).remove();
 
-                       polyline = new google.maps.Polyline( {
-                           path: [],
-                           strokeWeight: 0
-                       } );
+                    directionsDisplay.setMap( null ); // clear direction from the map
+                    directionsDisplay = new google.maps.DirectionsRenderer; // this is to render again, otherwise your route wont show for the second time searching
+                    directionsDisplay.setMap( map ); //this is to set up again
 
-                       var bounds = new google.maps.LatLngBounds();
-                       directionsDisplay.setDirections( response );
+                    google.maps.event.trigger( map, 'resize' );
+                }
 
-                       var routeLegs = response['routes'][0]['legs'];
-                       for ( var i = 0; i < routeLegs.length; i++ ) {
-                           if (0 === i && !startEvent.isMarker) {
-                               createMarkerAtLeg(routeLegs[i], 'start');
-                           }
-                           if ( routeLegs.length - 1 === i && !endEvent.isMarker ) {
-                               createMarkerAtLeg(routeLegs[i], 'end');
-                           }
-                           if ( i !== 0 && !waypointsDuplicate[i - 1].isMarker && ( i - 1 ) <= waypointsDuplicate.length - 1) {
-                               createMarkerAtLeg(routeLegs[i], 'start');
-                           }
-                           var steps = routeLegs[i].steps;
-                           for (var j = 0; j < steps.length; j++) {
-                               var nextSegment = steps[j].path;
-                               for (var k = 0; k < nextSegment.length; k++) {
-                                   polyline.getPath().push(nextSegment[k]);
-                                   bounds.extend( nextSegment[ k ] );
-                               }
-                           }
-                       }
-                       polyline.setMap( map );
+                $( '#lb-gmaps-context-menu' ).remove();
+            } );
 
-                       computeTotalDistance( response );
+            $( '#add-waypoint' ).on( 'click', function () {
+                waypoints.push( {
+                    location: event.latLng,
+                } );
+                waypointsDuplicate.push( {
+                    location: event.latLng,
+                    isMarker: event.isMarker
+                } );
 
-                       if ( 0 === $('#lb-gmaps-directions-type').length ) {
-                           $('#lb-gmaps-live-preview').append( helperViews.travelModes );
-                       }
+                handleRoute( waypoints );
 
-                       setTimeout( function () {
-                           $( '#lb-gmaps-directions-type' ).find( 'li' ).on( 'click', directionsTypeClickEvent );
-                       }, 1000 );
+                $( '#lb-gmaps-context-menu' ).remove();
+            } );
 
-                   } else {
-                       if( ! data.frontEnd ) {
-                           appendErrorMessage( 'Directions request failed due to ' + status.toLowerCase().replace( '_', ' ' ) );
-                       }
-                   }
-               } );
-               bothButtonsClicked = 0;
+            function handleRoute( waypts, travelMode ) {
+                if( 2 === bothButtonsClicked || waypts || travelMode ) {
+                    if( ! travelMode ) {
+                        travelMode = 'DRIVING';
+                    }
 
-               function createMarkerAtLeg( routeLeg, type ) {
-                   var info = routeLeg[ type + '_address' ].split( ', ' );
-                   var startMarker = new google.maps.Marker({
-                       map: map,
-                       position: routeLeg[ type + '_location' ],
-                       name: info[ info.length - 1 ] + ', ' + info[ info.length - 2 ],
-                       content: routeLeg[ type + '_address' ]
-                   });
-                   newMarkers.push( startMarker );
-                   displayInfoWindow( map, startMarker, false );
-               }
+                    if( 2 === bothButtonsClicked ) {
+                        waypoints = [];
+                        startEvent = newStartEvent;
+                        endEvent = newEndEvent;
+                    }
 
-               function directionsTypeClickEvent( ev ) {
-                   $( '#lb-gmaps-directions-type' ).find( 'li' ).off( 'click' );
-                   var travelMode = $( ev.currentTarget ).attr( 'id' ).toUpperCase();
-                   if( 'TRANSIT' === travelMode && waypts && 0 < waypts.length ) {
-                       appendInfoMessage( messages.transitMode );
-                   } else {
-                       handleRoute( waypoints, travelMode );
-                   }
-               }
+                    directionsDisplay.setMap( map );
+                    directionsDisplay.setOptions( {suppressMarkers: true} );
 
-               function computeTotalDistance( result ) {
-                   registerGetPointFromDistFunc();
+                    var request = {
+                        origin: startEvent.latLng,
+                        destination: endEvent.latLng,
+                        travelMode: travelMode
+                    };
 
-                   var totalDist = 0;
-                   var totalTime = 0;
-                   var myroute = result.routes[0];
-                   for ( i = 0; i < myroute.legs.length; i++ ) {
-                       totalDist += myroute.legs[ i ].distance.value;
-                       totalTime += myroute.legs[ i ].duration.value;
-                   }
-                   putInfoWindowOnRoute( 50 );
+                    if( waypts ) {
+                        request.waypoints = waypts;
+                    }
 
-                   totalDist = totalDist / 1000.;
+                    directionsService.route( request , function( response, status ) {
+                        if ( 'OK' === status ) {
+                            if ( ! waypts || waypts && 0 === waypts.length) {
+                                newMarkers.map( m => m.setMap( null ) );
+                            }
+                            if ( polyline ) {
+                                polyline.setMap( null );
+                            }
 
-                   function registerGetPointFromDistFunc() {
-                       google.maps.Polygon.prototype.getPointAtDistance = function(metres) {
-                           // some awkward special cases
-                           if (metres == 0) return this.getPath().getAt(0);
-                           if (metres < 0) return null;
-                           if (this.getPath().getLength() < 2) return null;
-                           var dist=0;
-                           var olddist=0;
-                           for (var i=1; (i < this.getPath().getLength() && dist < metres); i++) {
-                               olddist = dist;
-                               dist += google.maps.geometry.spherical.computeDistanceBetween (
-                                   this.getPath().getAt(i),
-                                   this.getPath().getAt(i-1)
-                               );
-                           }
-                           if (dist < metres) return null;
-                           var p1= this.getPath().getAt(i-2);
-                           var p2= this.getPath().getAt(i-1);
-                           var m = (metres-olddist)/(dist-olddist);
-                           return new google.maps.LatLng( p1.lat() + (p2.lat()-p1.lat())*m, p1.lng() + (p2.lng()-p1.lng())*m);
-                       };
-                       google.maps.Polyline.prototype.getPointAtDistance = google.maps.Polygon.prototype.getPointAtDistance;
-                   }
+                            polyline = new google.maps.Polyline( {
+                                path: [],
+                                strokeWeight: 0
+                            } );
 
-                   function putInfoWindowOnRoute( percentage ) {
-                       var distance = ( percentage / 100 ) * totalDist;
-                       var time = ( ( percentage / 100 ) * totalTime / 60 ).toFixed( 2 );
-                       if( infowindow ) {
-                           infowindow.setMap( null );
-                           infowindow = undefined;
-                       }
+                            var bounds = new google.maps.LatLngBounds();
+                            directionsDisplay.setDirections( response );
 
-                       infowindow = new google.maps.InfoWindow();
-                       var travelModes = {
-                           WALKING: 'blind',
-                           DRIVING: 'car',
-                           BICYCLING: 'bicycle',
-                           TRANSIT: 'bus'
-                       };
+                            var routeLegs = response['routes'][0]['legs'];
+                            for ( var i = 0; i < routeLegs.length; i++ ) {
+                                if ( 0 === i && ! startEvent.isMarker && options.routeMarkers ) {
+                                    createMarkerAtLeg(routeLegs[i], 'start');
+                                }
+                                if ( routeLegs.length - 1 === i && ! endEvent.isMarker && options.routeMarkers ) {
+                                    createMarkerAtLeg(routeLegs[i], 'end');
+                                }
+                                if ( i !== 0 && !waypointsDuplicate[i - 1].isMarker && ( i - 1 ) <= waypointsDuplicate.length - 1 && options.waypointsMarkers ) {
+                                    createMarkerAtLeg(routeLegs[i], 'start');
+                                }
+                                var steps = routeLegs[i].steps;
+                                for (var j = 0; j < steps.length; j++) {
+                                    var nextSegment = steps[j].path;
+                                    for (var k = 0; k < nextSegment.length; k++) {
+                                        polyline.getPath().push(nextSegment[k]);
+                                        bounds.extend( nextSegment[ k ] );
+                                    }
+                                }
+                            }
+                            polyline.setMap( map );
 
-                       infowindow.setContent( ( totalDist / 1000 ).toFixed( 1 ) + " km<br>" + Math.ceil( totalTime / 60 ) + " mins " + '<i class="fa fa-'+ travelModes[ travelMode ] +'" aria-hidden="true"></i>' );
-                       infowindow.setPosition( polyline.getPointAtDistance( distance ) );
+                            computeTotalDistance( response );
 
-                       infowindow.open( map );
-                   }
-               }
+                            if ( 0 === $('#lb-gmaps-directions-type').length && options.meansOfTransport ) {
+                                $('#lb-gmaps-live-preview').append( helperViews.travelModes );
+                            }
 
-               function appendErrorMessage( message ) {
-                   appendMessage( 'error', message )
-               }
+                            setTimeout( function () {
+                                $( '#lb-gmaps-directions-type' ).find( 'li' ).on( 'click', directionsTypeClickEvent );
+                            }, 1000 );
 
-               function appendInfoMessage( message ) {
-                   appendMessage( 'info', message );
-               }
+                        } else {
+                            if( 'OVER_QUERY_LIMIT' !== status ) {
+                                appendErrorMessage( 'Directions request failed due to ' + status.toLowerCase().replace( /_/g, ' ' ) );
+                            }
+                        }
+                    } );
+                    bothButtonsClicked = 0;
 
-               function appendMessage( type, message ) {
-                   $( '#lb-gmaps-directions-type' ).hide();
-                   $( '#lb-gmaps-live-preview' ).append( '<div id="lb-gmaps-map-'+ type +'">' + message + '</div>' );
-                   setTimeout( function () {
-                       $( '#lb-gmaps-map-' + type ).remove();
-                       $( '#lb-gmaps-directions-type' ).show().find( 'li' ).on( 'click', directionsTypeClickEvent );
-                   }, 3000 )
-               }
-           } else {
-               $( '#lb-gmaps-context-menu' ).find( '#add-waypoint' ).remove();
-           }
+                    function createMarkerAtLeg( routeLeg, type ) {
+                        var info = routeLeg[ type + '_address' ].split( ', ' );
+                        var startMarker = new google.maps.Marker({
+                            map: map,
+                            position: routeLeg[ type + '_location' ],
+                            name: info[ info.length - 1 ] + ', ' + info[ info.length - 2 ],
+                            content: routeLeg[ type + '_address' ]
+                        });
+                        newMarkers.push( startMarker );
+                        displayInfoWindow( map, startMarker, false );
+                    }
+
+                    function directionsTypeClickEvent( ev ) {
+                        $( '#lb-gmaps-directions-type' ).find( 'li' ).off( 'click' );
+                        var travelMode = $( ev.currentTarget ).attr( 'id' ).toUpperCase();
+                        if( 'TRANSIT' === travelMode && waypts && 0 < waypts.length ) {
+                            appendInfoMessage( messages.transitMode );
+                        } else {
+                            handleRoute( waypoints, travelMode );
+                        }
+                    }
+
+                    function computeTotalDistance( result ) {
+                        registerGetPointFromDistFunc();
+
+                        var totalDist = 0;
+                        var totalTime = 0;
+                        var myroute = result.routes[0];
+                        for ( i = 0; i < myroute.legs.length; i++ ) {
+                            totalDist += myroute.legs[ i ].distance.value;
+                            totalTime += myroute.legs[ i ].duration.value;
+                        }
+                        if( options.directionsInfowindow ) {
+                            putInfoWindowOnRoute( 50 );
+                        }
+
+                        totalDist = totalDist / 1000.;
+
+                        function registerGetPointFromDistFunc() {
+                            google.maps.Polygon.prototype.getPointAtDistance = function(metres) {
+                                // some awkward special cases
+                                if (metres == 0) return this.getPath().getAt(0);
+                                if (metres < 0) return null;
+                                if (this.getPath().getLength() < 2) return null;
+                                var dist=0;
+                                var olddist=0;
+                                for (var i=1; (i < this.getPath().getLength() && dist < metres); i++) {
+                                    olddist = dist;
+                                    dist += google.maps.geometry.spherical.computeDistanceBetween (
+                                        this.getPath().getAt(i),
+                                        this.getPath().getAt(i-1)
+                                    );
+                                }
+                                if (dist < metres) return null;
+                                var p1= this.getPath().getAt(i-2);
+                                var p2= this.getPath().getAt(i-1);
+                                var m = (metres-olddist)/(dist-olddist);
+                                return new google.maps.LatLng( p1.lat() + (p2.lat()-p1.lat())*m, p1.lng() + (p2.lng()-p1.lng())*m);
+                            };
+                            google.maps.Polyline.prototype.getPointAtDistance = google.maps.Polygon.prototype.getPointAtDistance;
+                        }
+
+                        function putInfoWindowOnRoute( percentage ) {
+                            var distance = ( percentage / 100 ) * totalDist;
+                            var time = ( ( percentage / 100 ) * totalTime / 60 ).toFixed( 2 );
+                            if( infowindow ) {
+                                infowindow.setMap( null );
+                            }
+
+                            infowindow = new google.maps.InfoWindow();
+                            var travelModes = {
+                                WALKING: 'blind',
+                                DRIVING: 'car',
+                                BICYCLING: 'bicycle',
+                                TRANSIT: 'bus'
+                            };
+
+                            infowindow.setContent( ( totalDist / 1000 ).toFixed( 1 ) + " km<br>" + Math.ceil( totalTime / 60 ) + " mins " + '<i class="fa fa-'+ travelModes[ travelMode ] +'" aria-hidden="true"></i>' );
+                            infowindow.setPosition( polyline.getPointAtDistance( distance ) );
+
+                            infowindow.open( map );
+                        }
+                    }
+
+                    function appendErrorMessage( message ) {
+                        appendMessage( 'error', message )
+                    }
+
+                    function appendInfoMessage( message ) {
+                        appendMessage( 'info', message );
+                    }
+
+                    function appendMessage( type, message ) {
+                        $( '#lb-gmaps-directions-type' ).hide();
+                        $( '#lb-gmaps-live-preview' ).append( '<div id="lb-gmaps-map-'+ type +'">' + message + '</div>' );
+                        setTimeout( function () {
+                            $( '#lb-gmaps-map-' + type ).remove();
+                            $( '#lb-gmaps-directions-type' ).show().find( 'li' ).on( 'click', directionsTypeClickEvent );
+                        }, 3000 )
+                    }
+                } else {
+                    $( '#lb-gmaps-context-menu' ).find( '#add-waypoint' ).remove();
+                }
+            }
         }
     }
 }

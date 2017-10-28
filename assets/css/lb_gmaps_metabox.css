@@ -4,7 +4,7 @@
 }
 
 #lb-gmaps-fields {
-    width: 49%;
+    width: 39%;
     height: 800px;
     display: inline-block;
     overflow-y: scroll;
@@ -12,9 +12,12 @@
     margin-bottom: 20px;
 }
 
+#lb-gmaps-metabox {
+    -ms-overflow-style: none;
+}
+
 #lb-gmaps-fields::-webkit-scrollbar,
-#maps::-webkit-scrollbar,
-#lb-gmaps-fields #lb-gmaps-map-types::-webkit-scrollbar {
+#lb-gmaps-metabox::-webkit-scrollbar {
     display: none;
 }
 
@@ -104,7 +107,7 @@
 
 #lb-gmaps-live-preview {
     display: inline-block;
-    width: 50%;
+    width: 60%;
     margin: 0;
     padding: 0;
     height: 800px;
@@ -185,7 +188,7 @@ div.lb-gmaps-dimensions-error {
     position: absolute;
     width: 300px;
     height: 75px;
-    left:  calc((100% - 300px) / 2);;
+    left: calc((100% - 300px) / 2);;
     border: 3px solid #417DF1;
     border-radius: 100px;
     background-color: #FFC107;
@@ -239,4 +242,8 @@ div.lb-gmaps-dimensions-error {
 
 #lb-gmaps-map-info {
     background-color: #FFC107;
+}
+
+label.map-controls {
+    width: 40%;
 }

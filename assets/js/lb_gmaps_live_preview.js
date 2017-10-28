@@ -1,5 +1,7 @@
 function initMap() {
     var markers = [];
+    var directionServiceOptions = {};
+    var mapMarkers = [];
     var mapAttributes = {
         post_id: post.ID
     };
@@ -8,6 +10,7 @@ function initMap() {
         $( '#lb-gmaps-live-preview' ).css({height: data.map.height, width: data.map.width});
         var map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), parseMapData( data.map ) );
         mapAttributes = data.map;
+        directionServiceOptions = parseDirectionsOptions( data.map );
     } else {
         var map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), {
             center: {lat: 45.40338, lng: 10.17403},
@@ -15,9 +18,14 @@ function initMap() {
             disableDefaultUI: true,
             gestureHandling: 'none'
         });
+        directionServiceOptions = {
+            disableDirections: true,
+            routeMarkers: false,
+            waypointsMarkers: false,
+            directionsInfowindow: false,
+            meansOfTransport: false
+        };
     }
-
-    var mapMarkers = [];
 
     for ( var i = 0; i < data.markers.length; i++ ) {
         if( 'object' === typeof data.markers[ i ] ) {
@@ -29,11 +37,9 @@ function initMap() {
         }
     }
 
-    mapDirections( map, mapMarkers );
-
-    ( function ( map, mapAttributes, markers ) {
-        postFormHandler( map, mapAttributes, markers );
-    } )( map, mapAttributes, markers );
+    ( function ( map, mapAttributes, markers, mapMarkers, directionServiceOptions ) {
+        postFormHandler( map, mapAttributes, markers, mapMarkers, directionServiceOptions );
+    } )( map, mapAttributes, markers, mapMarkers, directionServiceOptions );
 
     map.addListener( 'dblclick', function ( event ) {
         ( function ( map, markers ) {
@@ -43,7 +49,6 @@ function initMap() {
 
     $( '#publish' ).on( 'click', function ( e ) {
         e.preventDefault();
-        console.log(markers);
         mapAttributes.lat = map.getCenter().lat();
         mapAttributes.lng = map.getCenter().lng();
         mapAttributes.zoom = map.getZoom();
@@ -51,6 +56,11 @@ function initMap() {
             mapAttributes.map_types = mapAttributes.map_types.join( ', ' );
         }
         mapAttributes.gesture_handling = map.get( 'gestureHandling' );
+        var directionsKeys = Object.keys( directionServiceOptions );
+        for (var i = 0; i < directionsKeys.length; i++) {
+            var key = directionsKeys[ i ].replace( 'disableD', 'd' ).replace( /[A-Z]+/g, '_$&' ).toLowerCase();
+            mapAttributes[ key ] = directionServiceOptions[ directionsKeys[ i ] ];
+        }
         $.ajax( {
             type: "POST",
             url: admin.ajaxURL,
@@ -94,7 +104,10 @@ function handleSaveButton(  ) {
     }
 }
 
-function postFormHandler( map, mapAttributes, markers ) {
+function postFormHandler( map, mapAttributes, markers, mapMarkers, directionServiceOptions ) {
+
+    mapDirections( map, mapMarkers, directionServiceOptions );
+
     handleLivePreviewContainer();
 
     attachDomReadyEvents();
@@ -122,7 +135,7 @@ function postFormHandler( map, mapAttributes, markers ) {
                 if ( ! isFullScreen() ) {
                     $( '#lb-gmaps-map-fullscreen' ).prop( 'checked', false );
                     $( '#lb-gmaps-metabox.postbox' ).css( 'overflow-y', 'visible' );
-                    $( '#lb-gmaps-live-preview' ).trigger( 'changeDimensions' );
+                    triggerDimensionsEvent();
                 }
             } );
 
@@ -219,6 +232,32 @@ function postFormHandler( map, mapAttributes, markers ) {
     $( '#lb-gmaps-map-scale-control' ).on( 'change', function ( e ) {
         map.set( 'scaleControl', e.target.checked );
         mapAttributes.scale_control = e.target.checked;
+    } );
+
+    //Handle directions field. If ticked the user will be able to create routes
+    $( '#lb-gmaps-map-directions' ).on( 'change', function ( e ) {
+        e.target.checked === true ? directionServiceOptions.disableDirections = false : directionServiceOptions.disableDirections = true;
+        mapDirections( map, mapMarkers, directionServiceOptions );
+    } );
+
+    //Handle markers creation at the end and beginning of a route
+    $( '#lb-gmaps-map-route-markers' ).on( 'change', function ( e ) {
+        e.target.checked === true ? directionServiceOptions.routeMarkers = true : directionServiceOptions.routeMarkers = false;
+    } );
+
+    //Handle markers creation at each waypoint
+    $( '#lb-gmaps-map-waypoints-markers' ).on( 'change', function ( e ) {
+        e.target.checked === true ? directionServiceOptions.waypointsMarkers = true : directionServiceOptions.waypointsMarkers = false;
+    } );
+
+    //Handle Infowindows on routes
+    $( '#lb-gmaps-map-directions-infowindow' ).on( 'click', function ( e ) {
+        e.target.checked === true ? directionServiceOptions.directionsInfowindow = true : directionServiceOptions.directionsInfowindow = false;
+    } );
+
+    //Handle Means of Transport field
+    $( '#lb-gmaps-map-means-of-transport' ).on( 'click', function ( e ) {
+        e.target.checked === true ? directionServiceOptions.meansOfTransport = true : directionServiceOptions.meansOfTransport = false ;
     } );
 
     var controls = $( '#lb-gmaps-fields select:not( [multiple] )' );
@@ -434,9 +473,128 @@ function triggerDimensionsEvent() {
 }
 
 function getMetaboxHalfWidth() {
-    return Math.ceil( 0.5 * $( '#lb-gmaps-metabox:not(.postbox)' ).width() )
+    return Math.ceil( 0.6 * $( '#lb-gmaps-metabox:not(.postbox)' ).width() )
+}
+
+function showMarkerForm( map, marker ) {
+    var markerObject = {
+        uniqueness: marker.uniqueness,
+        post_id: post.ID,
+        lat: marker.position.lat(),
+        lng: marker.position.lng()
+    };
+
+    var markerForm = $( views.form );
+
+    if( marker.hasOwnProperty( 'name' ) ) {
+        markerForm.find( '#marker_name' ).val( marker.name );
+    }
+    if( marker.hasOwnProperty( 'content' ) ) {
+        markerForm.find( '#marker_description' ).val( marker.content );
+    }
+    if( ! marker.hasOwnProperty( 'name' ) && ! marker.hasOwnProperty( 'content' ) ) {
+        $( '<button type="button" class="marker-button" id="delete-button">Delete Marker</button>' ).insertAfter( markerForm.find( '#save-button' ) );
+    }
+
+    var mapContainer = $( '#lb-gmaps-live-preview' );
+    var heightVal = parseInt( mapContainer.css( 'height' ).replace( 'px', '' ) );
+    var widthVal = parseInt( mapContainer.css( 'width' ).replace( 'px', '' ) );
+
+    if( heightVal < 400 && widthVal <= getMetaboxHalfWidth() ) {
+        markerForm.css( { 'left': 'initial', 'bottom': heightVal + 50 + 'px', 'right': 'calc( ( 50% - 280px ) / 2 )' } );
+        markerForm.insertBefore( '#lb-gmaps-fields' );
+    } else if( heightVal < 400 && widthVal > getMetaboxHalfWidth() ) {
+        markerForm.css( { 'left': 'initial', 'bottom': '420px', 'right': 'calc( ( 100% - 280px ) / 2 )' } );
+        markerForm.insertBefore( '#lb-gmaps-fields' );
+    } else {
+        mapContainer.append( markerForm );
+    }
+
+    if ( $( '#marker-upload-media' ).length > 0 ) {
+        if ( typeof wp !== 'undefined' && wp.media && wp.media.editor ) {
+            $( document ).on( 'click', '#marker-upload-media', function( e ) {
+                if (this.window === undefined) {
+                    this.window = wp.media({
+                        title: 'Insert a marker photo',
+                        library: {type: 'image'},
+                        multiple: false,
+                        button: {text: 'Insert'}
+                    });
+
+                    var self = this; // Needed to retrieve our variable in the anonymous function below
+                    this.window.on('select', function() {
+                        var first = self.window.state().get('selection').first().toJSON();
+                    });
+                }
+
+                this.window.open();
+                return false;
+            });
+        }
+    }
+
+    tinymce.init({
+        theme: 'modern',
+        selector: '#marker_description',
+        resize: true,
+        setup: function( ed ) {
+            ed.on('blur', function() {
+                var content = ed.getContent();
+                var field = $( '#marker_description' );
+                if( '' === content ) {
+                    field.removeClass( 'valid' );
+                    if( ! field.siblings( '.marker-error' ).length ) {
+                        field.parent().append( '<div class="marker-error">' + errors.emptyField + '</div>' );
+                    }
+                } else {
+                    field.addClass( 'valid' );
+                    field.siblings( '.marker-error' ).remove();
+                }
+                handleSaveButton();
+            });
+        }
+    });
+
+    validateMarkerForm( markerForm );
+
+    $( '#cancel-button' ).on( 'click', function () {
+        tinymce.get('marker_description').remove();
+        markerForm.remove();
+        displayInfoWindow( map, marker );
+    } );
+
+    $( '#save-button' ).on( 'click', function () {
+        tinymce.get('marker_description').remove();
+        markerObject.name = $.trim( $( '#marker_name' ).val() );
+        markerObject.content = $.trim( $( '#marker_description' ).val() );
+        markerForm.remove();
+        $.ajax( {
+            type: "POST",
+            url: admin.ajaxURL,
+            data: {
+                action: 'save_marker_data',
+                marker: markerObject
+            }
+        } ).then( function (data) {
+            if( data ) {
+                marker.name = markerObject.name;
+                marker.content = markerObject.content;
+                displayInfoWindow( map, marker );
+            }
+        } );
+    } );
+
+    $( '#delete-button' ).on( 'click', function () {
+        deleteMarker( marker );
+    } );
+}
+
+function parseDirectionsOptions( mapData ) {
+    var obj = {};
+    //TODO: ADD PREFIX TO DB IN ORDER TO EASIER PARSE DATA HERE.
 }
 
 //TODO: FIX HEIGHT FIELD IN PERCENTS AND MARKER FORM STYLING
 //TODO: Enrich string translation
 //TODO: Add Comments
+//TODO: ADD SOME RESPONSIVE DESIGN
