@@ -43,12 +43,12 @@ class LB_GMaps_Database_Handler {
 			map_types VARCHAR(20) NULL,
 			width VARCHAR(10) NOT NULL DEFAULT \"50%\",
 			height VARCHAR(10) NOT NULL DEFAULT \"800px\",
-			searching_field VARCHAR(10) NULL,
 			directions VARCHAR(10) NULL,
-			means_of_transport VARCHAR(10) NULL,
-			route_markers VARCHAR(10) NULL,
-			waypoint_markers VARCHAR(10) NULL,
-			directions_infowindow VARCHAR(10) NULL,
+			dir_searching_field VARCHAR(10) NULL,
+			dir_means_of_transport VARCHAR(10) NULL,
+			dir_route_markers VARCHAR(10) NULL,
+			dir_route_infowindow VARCHAR(10) NULL,
+			dir_waypoints_markers VARCHAR(10) NULL,
 			PRIMARY KEY (post_id)
 		) $charset_collate;";
 

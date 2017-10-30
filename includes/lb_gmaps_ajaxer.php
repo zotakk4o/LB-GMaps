@@ -34,6 +34,7 @@ class LB_GMaps_Ajaxer {
 		if( isset( $_POST['map'] ) && ! empty( $_POST['map'] ) ) {
 			$this->db_handler->save_map( $_POST['map'] );
 		}
+
 		if( isset( $_POST['markers'] ) && ! empty( $_POST['markers'] ) && is_array( $_POST['markers'] ) ) {
 			foreach ( $_POST['markers'] as $marker_args ) {
 				$marker_args['uniqueness'] = md5( "{$marker_args['lat']}{$marker_args['lng']}" );

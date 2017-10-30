@@ -1,5 +1,5 @@
 function initMap() {
-    var markers = [];
+    var markers = {};
     var directionServiceOptions = {};
     var mapMarkers = [];
     var mapAttributes = {
@@ -11,6 +11,10 @@ function initMap() {
         var map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), parseMapData( data.map ) );
         mapAttributes = data.map;
         directionServiceOptions = parseDirectionsOptions( data.map );
+        if( mapAttributes.dir_searching_field ) {
+            $( '#lb-gmaps-live-preview' ).append( helperViews.searchingField );
+            handleSearchingField( map );
+        }
     } else {
         var map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), {
             center: {lat: 45.40338, lng: 10.17403},
@@ -19,10 +23,10 @@ function initMap() {
             gestureHandling: 'none'
         });
         directionServiceOptions = {
-            disableDirections: true,
+            directions: true,
             routeMarkers: false,
             waypointsMarkers: false,
-            directionsInfowindow: false,
+            routeInfowindow: false,
             meansOfTransport: false
         };
     }
@@ -32,7 +36,7 @@ function initMap() {
             var marker = new google.maps.Marker( parseMarkerData( data.markers[ i ] ) );
             marker.setPosition( new google.maps.LatLng( marker.lat , marker.lng ) );
             marker.setMap( map );
-            displayInfoWindow( map, marker );
+            displayInfoWindow( map, marker, true );
             mapMarkers.push( marker );
         }
     }
@@ -58,8 +62,14 @@ function initMap() {
         mapAttributes.gesture_handling = map.get( 'gestureHandling' );
         var directionsKeys = Object.keys( directionServiceOptions );
         for (var i = 0; i < directionsKeys.length; i++) {
-            var key = directionsKeys[ i ].replace( 'disableD', 'd' ).replace( /[A-Z]+/g, '_$&' ).toLowerCase();
+            var key = directionsKeys[ i ].replace( /[A-Z]+/g, '_$&' ).toLowerCase();
+            'directions' !== key ? key = 'dir_' + key : key;
             mapAttributes[ key ] = directionServiceOptions[ directionsKeys[ i ] ];
+        }
+        var ajaxArr = [];
+        var keys = Object.keys( markers );
+        for (var i = 0; i < keys.length; i++) {
+            ajaxArr.push( markers[ keys[ i ] ] );
         }
         $.ajax( {
             type: "POST",
@@ -67,7 +77,7 @@ function initMap() {
             data: {
                 action: 'save_map_data',
                 map: mapAttributes,
-                markers: markers
+                markers: ajaxArr
             }
         } );
     } );
@@ -120,7 +130,7 @@ function postFormHandler( map, mapAttributes, markers, mapMarkers, directionServ
         if( e.target.checked ) {
             var el = $( '#lb-gmaps-metabox.postbox' );
             el.css( {'overflow-y': 'scroll'} );
-            reorder_fields( true );
+            reorderFields( true );
             // Supports most browsers and their versions.
             var requestMethod = el[0].requestFullScreen || el[0].webkitRequestFullScreen
                 || el[0].mozRequestFullScreen || el[0].msRequestFullScreen;
@@ -236,28 +246,39 @@ function postFormHandler( map, mapAttributes, markers, mapMarkers, directionServ
 
     //Handle directions field. If ticked the user will be able to create routes
     $( '#lb-gmaps-map-directions' ).on( 'change', function ( e ) {
-        e.target.checked === true ? directionServiceOptions.disableDirections = false : directionServiceOptions.disableDirections = true;
+        directionServiceOptions.directions = e.target.checked;
         mapDirections( map, mapMarkers, directionServiceOptions );
+    } );
+
+    //Handle searching field. If ticked the user will be able to search venues from it.
+    $( '#lb-gmaps-map-route-searching-field' ).on( 'change', function ( e ) {
+        mapAttributes.dir_searching_field = e.target.checked;
+         if( e.target.checked ) {
+             $( '#lb-gmaps-live-preview' ).append( helperViews.searchingField );
+             handleSearchingField( map );
+         } else {
+             $( '#lb-gmaps-searching-field-container' ).remove();
+         }
     } );
 
     //Handle markers creation at the end and beginning of a route
     $( '#lb-gmaps-map-route-markers' ).on( 'change', function ( e ) {
-        e.target.checked === true ? directionServiceOptions.routeMarkers = true : directionServiceOptions.routeMarkers = false;
+        directionServiceOptions.routeMarkers = e.target.checked;
     } );
 
     //Handle markers creation at each waypoint
     $( '#lb-gmaps-map-waypoints-markers' ).on( 'change', function ( e ) {
-        e.target.checked === true ? directionServiceOptions.waypointsMarkers = true : directionServiceOptions.waypointsMarkers = false;
+        directionServiceOptions.waypointsMarkers = e.target.checked;
     } );
 
     //Handle Infowindows on routes
     $( '#lb-gmaps-map-directions-infowindow' ).on( 'click', function ( e ) {
-        e.target.checked === true ? directionServiceOptions.directionsInfowindow = true : directionServiceOptions.directionsInfowindow = false;
+        directionServiceOptions.routeInfowindow = e.target.checked;
     } );
 
     //Handle Means of Transport field
     $( '#lb-gmaps-map-means-of-transport' ).on( 'click', function ( e ) {
-        e.target.checked === true ? directionServiceOptions.meansOfTransport = true : directionServiceOptions.meansOfTransport = false ;
+        directionServiceOptions.meansOfTransport = e.target.checked;
     } );
 
     var controls = $( '#lb-gmaps-fields select:not( [multiple] )' );
@@ -399,7 +420,7 @@ function adjustDimensionsValue( field ) {
     }
 }
 
-function reorder_fields( isMapOutBounds ) {
+function reorderFields(isMapOutBounds ) {
     if( isMapOutBounds ) {
         $( '#lb-gmaps-fields' ).addClass( 'reordered-container' );
         $( '.lb-gmaps-form-group' ).each( ( i, el ) => {
@@ -418,9 +439,9 @@ function handleLivePreviewContainer() {
     var mapContainer = $( '#lb-gmaps-live-preview' );
     mapContainer.on( 'changeDimensions', function ( e ) {
         if( mapContainer.width() > getMetaboxHalfWidth() ) {
-            reorder_fields( true );
+            reorderFields( true );
         } else {
-            reorder_fields();
+            reorderFields();
         }
     } )
 }
@@ -458,8 +479,8 @@ function createMarker( map, location, markers ) {
         lat: marker.position.lat(),
         lng: marker.position.lng()
     };
-    showMarkerForm( map, marker );
-    markers.push( markerObject );
+    markers[ marker.position.lat() + marker.position.lng() ] = markerObject;
+    showMarkerForm( map, marker, markers );
 }
 
 function isFullScreen() {
@@ -476,123 +497,6 @@ function getMetaboxHalfWidth() {
     return Math.ceil( 0.6 * $( '#lb-gmaps-metabox:not(.postbox)' ).width() )
 }
 
-function showMarkerForm( map, marker ) {
-    var markerObject = {
-        uniqueness: marker.uniqueness,
-        post_id: post.ID,
-        lat: marker.position.lat(),
-        lng: marker.position.lng()
-    };
-
-    var markerForm = $( views.form );
-
-    if( marker.hasOwnProperty( 'name' ) ) {
-        markerForm.find( '#marker_name' ).val( marker.name );
-    }
-    if( marker.hasOwnProperty( 'content' ) ) {
-        markerForm.find( '#marker_description' ).val( marker.content );
-    }
-    if( ! marker.hasOwnProperty( 'name' ) && ! marker.hasOwnProperty( 'content' ) ) {
-        $( '<button type="button" class="marker-button" id="delete-button">Delete Marker</button>' ).insertAfter( markerForm.find( '#save-button' ) );
-    }
-
-    var mapContainer = $( '#lb-gmaps-live-preview' );
-    var heightVal = parseInt( mapContainer.css( 'height' ).replace( 'px', '' ) );
-    var widthVal = parseInt( mapContainer.css( 'width' ).replace( 'px', '' ) );
-
-    if( heightVal < 400 && widthVal <= getMetaboxHalfWidth() ) {
-        markerForm.css( { 'left': 'initial', 'bottom': heightVal + 50 + 'px', 'right': 'calc( ( 50% - 280px ) / 2 )' } );
-        markerForm.insertBefore( '#lb-gmaps-fields' );
-    } else if( heightVal < 400 && widthVal > getMetaboxHalfWidth() ) {
-        markerForm.css( { 'left': 'initial', 'bottom': '420px', 'right': 'calc( ( 100% - 280px ) / 2 )' } );
-        markerForm.insertBefore( '#lb-gmaps-fields' );
-    } else {
-        mapContainer.append( markerForm );
-    }
-
-    if ( $( '#marker-upload-media' ).length > 0 ) {
-        if ( typeof wp !== 'undefined' && wp.media && wp.media.editor ) {
-            $( document ).on( 'click', '#marker-upload-media', function( e ) {
-                if (this.window === undefined) {
-                    this.window = wp.media({
-                        title: 'Insert a marker photo',
-                        library: {type: 'image'},
-                        multiple: false,
-                        button: {text: 'Insert'}
-                    });
-
-                    var self = this; // Needed to retrieve our variable in the anonymous function below
-                    this.window.on('select', function() {
-                        var first = self.window.state().get('selection').first().toJSON();
-                    });
-                }
-
-                this.window.open();
-                return false;
-            });
-        }
-    }
-
-    tinymce.init({
-        theme: 'modern',
-        selector: '#marker_description',
-        resize: true,
-        setup: function( ed ) {
-            ed.on('blur', function() {
-                var content = ed.getContent();
-                var field = $( '#marker_description' );
-                if( '' === content ) {
-                    field.removeClass( 'valid' );
-                    if( ! field.siblings( '.marker-error' ).length ) {
-                        field.parent().append( '<div class="marker-error">' + errors.emptyField + '</div>' );
-                    }
-                } else {
-                    field.addClass( 'valid' );
-                    field.siblings( '.marker-error' ).remove();
-                }
-                handleSaveButton();
-            });
-        }
-    });
-
-    validateMarkerForm( markerForm );
-
-    $( '#cancel-button' ).on( 'click', function () {
-        tinymce.get('marker_description').remove();
-        markerForm.remove();
-        displayInfoWindow( map, marker );
-    } );
-
-    $( '#save-button' ).on( 'click', function () {
-        tinymce.get('marker_description').remove();
-        markerObject.name = $.trim( $( '#marker_name' ).val() );
-        markerObject.content = $.trim( $( '#marker_description' ).val() );
-        markerForm.remove();
-        $.ajax( {
-            type: "POST",
-            url: admin.ajaxURL,
-            data: {
-                action: 'save_marker_data',
-                marker: markerObject
-            }
-        } ).then( function (data) {
-            if( data ) {
-                marker.name = markerObject.name;
-                marker.content = markerObject.content;
-                displayInfoWindow( map, marker );
-            }
-        } );
-    } );
-
-    $( '#delete-button' ).on( 'click', function () {
-        deleteMarker( marker );
-    } );
-}
-
-function parseDirectionsOptions( mapData ) {
-    var obj = {};
-    //TODO: ADD PREFIX TO DB IN ORDER TO EASIER PARSE DATA HERE.
-}
 
 //TODO: FIX HEIGHT FIELD IN PERCENTS AND MARKER FORM STYLING
 //TODO: Enrich string translation

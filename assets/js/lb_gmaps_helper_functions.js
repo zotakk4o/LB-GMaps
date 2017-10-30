@@ -45,7 +45,7 @@ function styleInfowindow( infowindow ) {
     });
 }
 
-function showMarkerForm( map, marker ) {
+function showMarkerForm( map, marker, markers ) {
     var markerObject = {
         uniqueness: marker.uniqueness,
         post_id: post.ID,
@@ -66,6 +66,9 @@ function showMarkerForm( map, marker ) {
     }
 
     var mapContainer = $( '#lb-gmaps-live-preview' );
+    if( data.frontEnd ) {
+        mapContainer = $( '#lb-gmaps-front-end' );
+    }
     var heightVal = parseInt( mapContainer.css( 'height' ).replace( 'px', '' ) );
     var widthVal = parseInt( mapContainer.css( 'width' ).replace( 'px', '' ) );
 
@@ -129,7 +132,7 @@ function showMarkerForm( map, marker ) {
     $( '#cancel-button' ).on( 'click', function () {
         tinymce.get('marker_description').remove();
         markerForm.remove();
-        displayInfoWindow( map, marker );
+        displayInfoWindow( map, marker, true, markers );
     } );
 
     $( '#save-button' ).on( 'click', function () {
@@ -148,19 +151,19 @@ function showMarkerForm( map, marker ) {
             if( data ) {
                 marker.name = markerObject.name;
                 marker.content = markerObject.content;
-                displayInfoWindow( map, marker );
+                displayInfoWindow( map, marker, true );
             }
         } );
     } );
 
     $( '#delete-button' ).on( 'click', function () {
-        deleteMarker( marker );
+        deleteMarker( marker, markers );
     } );
 }
 
-function addMarkerClickListener( map, marker, content, infoWindow ) {
+function addMarkerClickListener( map, marker, markers, content, infoWindow ) {
     google.maps.event.clearListeners( marker, 'click' );
-    google.maps.event.addListener( marker, 'click', ( function( marker, content, infoWindow ) {
+    google.maps.event.addListener( marker, 'click', ( function( marker, markers, content, infoWindow ) {
         return function() {
             if( undefined !== infoWindow && undefined !== infoWindow && undefined !== content ) {
                 infoWindow.setContent( content );
@@ -170,7 +173,7 @@ function addMarkerClickListener( map, marker, content, infoWindow ) {
                 if( ! data.frontEnd ) {
                     $( '#edit-lb-gmaps-marker' ).on( 'click', function (  ) {
                         $( '.gm-style-iw' ).parent().remove();
-                        showMarkerForm( map, marker );
+                        showMarkerForm( map, marker, markers );
                     } );
 
                     $( '#transfer-lb-gmaps-marker').on( 'click', function () {
@@ -251,18 +254,18 @@ function addMarkerClickListener( map, marker, content, infoWindow ) {
                     } );
 
                     $( '#delete-lb-gmaps-marker' ).on( 'click', function () {
-                        deleteMarker( marker );
+                        deleteMarker( marker, markers );
                     } )
                 }
             } else {
-                showMarkerForm( map, marker );
+                showMarkerForm( map, marker, markers );
             }
 
         };
-    } )( marker, content, infoWindow) );
+    } )( marker, markers, content, infoWindow ) );
 }
 
-function deleteMarker( marker ) {
+function deleteMarker( marker, markers ) {
     $( '.gm-style-iw' ).parent().remove();
     google.maps.event.clearListeners( marker, 'click' );
     var markerObject = {
@@ -280,13 +283,17 @@ function deleteMarker( marker ) {
     } ).then( function ( data ) {
         tinymce.get('marker_description').remove();
         marker.setMap( null );
+        if( ! marker.hasOwnProperty( 'lat' ) && ! marker.hasOwnProperty( 'lng' ) ) {
+            delete markers[ marker.position.lat() + marker.position.lng() ];
+        }
+
         $( '#lb-gmaps-marker-form' ).remove();
     } )
 }
 
-function displayInfoWindow( map, marker, withButtons ) {
+function displayInfoWindow( map, marker, withButtons, markers ) {
     var content = $( views.infoBox );
-    if( ! data.frontEnd && withButtons ) {
+    if( withButtons ) {
         content.find( '#lb-gmaps-marker-description' ).append( '<span id="edit-lb-gmaps-marker">Edit</span>' );
         content.find( '#lb-gmaps-marker-description' ).append( '<span id="transfer-lb-gmaps-marker">Transfer to Another Map</span>' );
         content.find( '#lb-gmaps-marker-description' ).append( '<span id="delete-lb-gmaps-marker">Delete</span>' );
@@ -304,10 +311,10 @@ function displayInfoWindow( map, marker, withButtons ) {
         } );
 
         styleInfowindow( infoWindow );
-        addMarkerClickListener( map, marker, textContent, infoWindow );
+        addMarkerClickListener( map, marker, markers, textContent, infoWindow );
     } else {
         if( ! data.frontEnd ) {
-            addMarkerClickListener( map, marker );
+            addMarkerClickListener( map, marker, markers );
         }
     }
 
@@ -378,7 +385,7 @@ function parseMarkerData( data ) {
 }
 
 function mapDirections( map, markers, options ) {
-    if( options.disableDirections ) {
+    if( 'false' === options.directions ) {
         google.maps.event.clearListeners( map , 'rightclick' );
         for ( var i = 0; i < markers.length; i++ ) {
             google.maps.event.clearListeners( markers[ i ] , 'rightclick' );
@@ -410,7 +417,6 @@ function mapDirections( map, markers, options ) {
         overlay.setMap( map );
 
         google.maps.event.addListener( map, 'rightclick', function ( event ) {
-
             if( event.hasOwnProperty( 'uniqueness' ) ) {
                 var lpx =  overlay.getProjection().fromLatLngToContainerPixel( event.getPosition() );
                 rightClickEvent( {
@@ -613,8 +619,12 @@ function mapDirections( map, markers, options ) {
 
                             computeTotalDistance( response );
 
-                            if ( 0 === $('#lb-gmaps-directions-type').length && options.meansOfTransport ) {
-                                $('#lb-gmaps-live-preview').append( helperViews.travelModes );
+                            if ( 0 === $( '#lb-gmaps-directions-type' ).length && options.meansOfTransport ) {
+                                if( data.frontEnd ) {
+                                    $('#lb-gmaps-front-end').append( helperViews.travelModes );
+                                } else {
+                                    $('#lb-gmaps-live-preview').append( helperViews.travelModes );
+                                }
                             }
 
                             setTimeout( function () {
@@ -631,14 +641,14 @@ function mapDirections( map, markers, options ) {
 
                     function createMarkerAtLeg( routeLeg, type ) {
                         var info = routeLeg[ type + '_address' ].split( ', ' );
-                        var startMarker = new google.maps.Marker({
+                        var marker = new google.maps.Marker({
                             map: map,
                             position: routeLeg[ type + '_location' ],
                             name: info[ info.length - 1 ] + ', ' + info[ info.length - 2 ],
                             content: routeLeg[ type + '_address' ]
                         });
-                        newMarkers.push( startMarker );
-                        displayInfoWindow( map, startMarker, false );
+                        newMarkers.push( marker );
+                        displayInfoWindow( map, marker, false );
                     }
 
                     function directionsTypeClickEvent( ev ) {
@@ -661,7 +671,7 @@ function mapDirections( map, markers, options ) {
                             totalDist += myroute.legs[ i ].distance.value;
                             totalTime += myroute.legs[ i ].duration.value;
                         }
-                        if( options.directionsInfowindow ) {
+                        if( options.routeInfowindow ) {
                             putInfoWindowOnRoute( 50 );
                         }
 
@@ -723,7 +733,11 @@ function mapDirections( map, markers, options ) {
 
                     function appendMessage( type, message ) {
                         $( '#lb-gmaps-directions-type' ).hide();
-                        $( '#lb-gmaps-live-preview' ).append( '<div id="lb-gmaps-map-'+ type +'">' + message + '</div>' );
+                        if( data.frontEnd ) {
+                            $( '#lb-gmaps-front-end' ).append( '<div id="lb-gmaps-map-'+ type +'">' + message + '</div>' );
+                        } else {
+                            $( '#lb-gmaps-live-preview' ).append( '<div id="lb-gmaps-map-'+ type +'">' + message + '</div>' );
+                        }
                         setTimeout( function () {
                             $( '#lb-gmaps-map-' + type ).remove();
                             $( '#lb-gmaps-directions-type' ).show().find( 'li' ).on( 'click', directionsTypeClickEvent );
@@ -735,4 +749,67 @@ function mapDirections( map, markers, options ) {
             }
         }
     }
+}
+
+function parseDirectionsOptions( mapData ) {
+    var obj = {
+        directions: mapData.directions
+    };
+    var keys = Object.keys( mapData ).filter( k => -1 !== k.indexOf( 'dir_' ) );
+    for ( var i = 0; i < keys.length; i++ ) {
+        var key = keys[ i ].replace( 'dir_', '' ).replace( /_([a-z]){1}/g, ( m, l ) => { return l.toUpperCase() } );
+        obj[ key ] = mapData[ keys[ i ] ];
+    }
+    return obj;
+}
+
+function handleSearchingField( map ) {
+
+    //Handle appearing animation
+    $( '#lb-gmaps-searching-field-container' ).find( 'i' ).on( 'click', function ( e ) {
+        var control = $( e.currentTarget );
+        var parent = $( '#lb-gmaps-searching-field-container' );
+        if(  -1 !== control.attr( 'class' ).indexOf( 'up' ) ) {
+            parent.animate( { 'top': '-'+ parent.height() +'px' }, 700, function () {
+                parent.find( 'i.fa-angle-down' ).css( 'display', 'block' );
+                parent.find( 'i.fa-angle-up' ).css( 'display', 'none' );
+            } );
+        } else {
+            parent.animate( { 'top': '0' }, 700, function () {
+                parent.find( 'i.fa-angle-up' ).css( 'display', 'block' );
+                parent.find( 'i.fa-angle-down' ).css( 'display', 'none' );
+            } );
+        }
+    } );
+
+    //Handle the field logic itself
+    var autocomplete = new google.maps.places.Autocomplete( $( '#lb-gmaps-searching-field' )[0] );
+    autocomplete.bindTo( 'bounds', map );
+    autocomplete.addListener( 'place_changed', function() {
+        var place = autocomplete.getPlace();
+        if ( ! place.geometry ) {
+            // User entered the name of a Place that was not suggested and
+            // pressed the Enter key, or the Place Details request failed.
+            window.alert("No details available for input: '" + place.name + "'");
+            return;
+        }
+
+        // If the place has a geometry, then present it on a map.
+        if ( place.geometry.viewport ) {
+            map.fitBounds( place.geometry.viewport );
+        } else {
+            map.setCenter( place.geometry.location );
+        }
+
+
+
+        var address = '';
+        if ( place.address_components ) {
+            address = [
+                ( place.address_components[0] && place.address_components[0].short_name || '' ),
+                ( place.address_components[1] && place.address_components[1].short_name || '' ),
+                ( place.address_components[2] && place.address_components[2].short_name || '' )
+            ].join(' ');
+        }
+    });
 }

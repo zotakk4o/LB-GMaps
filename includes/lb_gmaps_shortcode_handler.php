@@ -16,7 +16,8 @@ class LB_GMaps_Shortcode_Handler {
 	}
 
 	public function enqueue_scripts() {
-		wp_enqueue_script( 'lb-gmaps-helper-functions', LB_GMAPS_ASSETS . 'js/lb_gmaps_helper_functions.js', array( 'jquery' ) );
+		wp_enqueue_script( 'tinymce_js', includes_url( 'js/tinymce/' ) . 'wp-tinymce.php', array( 'jquery' ), false, true );
+		wp_register_script( 'lb-gmaps-helper-functions', LB_GMAPS_ASSETS . 'js/lb_gmaps_helper_functions.js', array( 'tinymce_js' ) );
 		wp_register_script( 'lb-gmaps-front-end', LB_GMAPS_ASSETS . 'js/lb_gmaps_front_end.js', array( 'lb-gmaps-helper-functions' ) );
 		wp_register_script( 'lb-google-map', 'https://maps.googleapis.com/maps/api/js?key=' . get_option( LB_GMAPS_API_KEY ) . '&libraries=places&callback=initMap', array( 'lb-gmaps-front-end' ) );
 	}
@@ -36,11 +37,28 @@ class LB_GMaps_Shortcode_Handler {
 				wp_localize_script( 'lb-gmaps-front-end', 'views',
 					array( 'infoBox' => $this->get_content_of_view( 'marker', 'info' ) )
 				);
+				wp_localize_script( 'lb-gmaps-helper-functions', 'maps', array( 'select' => $this->get_content_of_view( 'marker', 'transfer' ) ) );
+				wp_localize_script( 'lb-gmaps-helper-functions', 'messages', array(
+					'markerSuccess' => __( 'Marker Successfully transferred.', 'lb-gmaps' ),
+					'markerError' => __( 'Some Maps didn\'t receive the marker successfully.', 'lb-gmaps' ),
+					'dimensionsError' => __( 'Missing "%" or "px"', 'lb-gmaps' ),
+					'transitMode' => __( 'Public transport routing not available with waypoints', 'lb-gmaps' )
+				) );
+				wp_localize_script( 'lb-gmaps-helper-functions', 'helperViews',
+					array(
+						'contextMenu' => $this->get_content_of_view( 'map', 'contextmenu' ),
+						'travelModes' => $this->get_content_of_view( 'map', 'directions_type' ),
+						'searchingField' => $this->get_content_of_view( 'map', 'searching_field' )
+					)
+				);;
+				wp_enqueue_script( 'lb-gmaps-helper-functions' );
 			}
 			wp_enqueue_script( 'lb-gmaps-front-end' );
 			wp_enqueue_script( 'lb-google-map' );
 
 			wp_enqueue_style( 'lb-gmaps-infowindow', LB_GMAPS_ASSETS . 'css/lb_gmaps_infowindow.css' );
+			wp_enqueue_style( 'lb-gmaps-shared', LB_GMAPS_ASSETS . 'css/lb_gmaps_shared.css' );
+			wp_enqueue_style('font-awesome', '//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');
 		}
 
 		return '<div id="lb-gmaps-front-end"></div>';
@@ -86,12 +104,7 @@ class LB_GMaps_Shortcode_Handler {
 	}
 
 	private function get_content_of_view( $view_type, $view_name ) {
-		switch ( $view_type ) {
-			case 'marker':
-				return file_get_contents( LB_GMAPS_VIEWS . "lb_gmaps_marker_$view_name.php" );
-			default:
-				return __( 'View Type Not Found', 'lb-gmaps' );
-		}
+		return file_get_contents( LB_GMAPS_VIEWS . "lb_gmaps_{$view_type}_{$view_name}.php" );
 	}
 
 

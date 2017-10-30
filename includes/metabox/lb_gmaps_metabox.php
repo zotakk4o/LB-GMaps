@@ -16,7 +16,7 @@
 			<label for="lb-gmaps-map-width"><?php echo __( 'Width', 'lb-gmaps' ) ?></label>
 			<input type="text" class="map-dimensions" id="lb-gmaps-map-width" value="<?php echo is_object( $this->get_map_data() ) ? $this->get_map_data()->width : '60%' ?>">
 			<small class="lb-gmaps-tip"><?php echo __( 'Width in percents 
-			                                            applies to current elements accordingly 
+			                                            applies to current elements accordingly
 			                                            and will look differently on different devices.', 'lb-gmaps' )?></small>
 		</div>
 		<div class="lb-gmaps-form-group dimensions">
@@ -35,28 +35,28 @@
 			<input type="checkbox" id="lb-gmaps-map-scale-control" <?php if( is_object( $this->get_map_data() ) ) { checked( $this->get_map_data()->scale_control,'true' ); }?>>
 		</div>
 		<div class="lb-gmaps-form-group">
-			<label class="map-controls" for="lb-gmaps-map-searching-field"><?php echo __( 'Place Searching Field', 'lb-gmaps' ) ?></label>
-			<input type="checkbox" id="lb-gmaps-map-route-searching-field" <?php if( is_object( $this->get_map_data() ) ) { checked( $this->get_map_data()->searching_field,'true' ); }?>>
-		</div>
-		<div class="lb-gmaps-form-group">
 			<label class="map-controls" for="lb-gmaps-map-directions"><?php echo __( 'Route Directions', 'lb-gmaps' ) ?></label>
 			<input type="checkbox" id="lb-gmaps-map-directions" <?php if( is_object( $this->get_map_data() ) ) { checked( $this->get_map_data()->directions,'true' ); }?>>
 		</div>
 		<div class="lb-gmaps-form-group">
+			<label class="map-controls" for="lb-gmaps-map-route-searching-field"><?php echo __( 'Place Searching Field', 'lb-gmaps' ) ?></label>
+			<input type="checkbox" id="lb-gmaps-map-route-searching-field" <?php if( is_object( $this->get_map_data() ) ) { checked( $this->get_map_data()->dir_searching_field,'true' ); }?>>
+		</div>
+		<div class="lb-gmaps-form-group">
 			<label class="map-controls" for="lb-gmaps-map-means-of-transport"><?php echo __( 'Different Means of Transport', 'lb-gmaps' ) ?></label>
-			<input type="checkbox" id="lb-gmaps-map-means-of-transport" <?php if( is_object( $this->get_map_data() ) ) { checked( $this->get_map_data()->means_of_transport,'true' ); }?>>
+			<input type="checkbox" id="lb-gmaps-map-means-of-transport" <?php if( is_object( $this->get_map_data() ) ) { checked( $this->get_map_data()->dir_means_of_transport,'true' ); }?>>
 		</div>
 		<div class="lb-gmaps-form-group">
 			<label class="map-controls" for="lb-gmaps-map-route-markers"><?php echo __( 'Markers on Route', 'lb-gmaps' ) ?></label>
-			<input type="checkbox" id="lb-gmaps-map-route-markers" <?php if( is_object( $this->get_map_data() ) ) { checked( $this->get_map_data()->route_markers,'true' ); }?>>
+			<input type="checkbox" id="lb-gmaps-map-route-markers" <?php if( is_object( $this->get_map_data() ) ) { checked( $this->get_map_data()->dir_route_markers,'true' ); }?>>
 		</div>
 		<div class="lb-gmaps-form-group">
 			<label class="map-controls" for="lb-gmaps-map-waypoints-markers"><?php echo __( 'Markers on Waypoints', 'lb-gmaps' ) ?></label>
-			<input type="checkbox" id="lb-gmaps-map-waypoints-markers" <?php if( is_object( $this->get_map_data() ) ) { checked( $this->get_map_data()->waypoints_markers,'true' ); }?>>
+			<input type="checkbox" id="lb-gmaps-map-waypoints-markers" <?php if( is_object( $this->get_map_data() ) ) { checked( $this->get_map_data()->dir_waypoints_markers,'true' ); }?>>
 		</div>
 		<div class="lb-gmaps-form-group">
 			<label class="map-controls" for="lb-gmaps-map-directions-infowindow"><?php echo __( 'Direction Routes Info Windows', 'lb-gmaps' ) ?></label>
-			<input type="checkbox" id="lb-gmaps-map-directions-infowindow" <?php if( is_object( $this->get_map_data() ) ) { checked( $this->get_map_data()->directions_infowindow,'true' ); }?>>
+			<input type="checkbox" id="lb-gmaps-map-directions-infowindow" <?php if( is_object( $this->get_map_data() ) ) { checked( $this->get_map_data()->dir_route_infowindow,'true' ); }?>>
 		</div>
 		<div class="lb-gmaps-form-group">
 			<?php $this->add_control_select( 'zoom' ); ?>
