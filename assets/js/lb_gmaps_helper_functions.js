@@ -5,8 +5,8 @@ function styleInfowindow( infowindow ) {
     google.maps.event.addListener( infowindow, 'domready', function() {
 
         // Reference to the DIV that wraps the bottom of infowindow
-        $('.gm-style-iw').addClass( 'custom-gm-style-iw' );
-        var iwOuter = $('.custom-gm-style-iw');
+        $( '.gm-style-iw:has(div#lb-gmaps-marker-contaier)' ).addClass( 'custom-gm-style-iw' );
+        var iwOuter = $( '.custom-gm-style-iw' );
         iwOuter.parent().css({'width': iwOuter.css('width'), 'height': iwOuter.css('height') });
 
         /* Since this div is in a position prior to .gm-div style-iw.
@@ -295,7 +295,7 @@ function displayInfoWindow( map, marker, withButtons, markers ) {
     var content = $( views.infoBox );
     if( withButtons ) {
         content.find( '#lb-gmaps-marker-description' ).append( '<span id="edit-lb-gmaps-marker">Edit</span>' );
-        content.find( '#lb-gmaps-marker-description' ).append( '<span id="transfer-lb-gmaps-marker">Transfer to Another Map</span>' );
+        content.find( '#lb-gmaps-marker-description' ).append( '<span id="transfer-lb-gmaps-marker">Duplicate to...</span>' );
         content.find( '#lb-gmaps-marker-description' ).append( '<span id="delete-lb-gmaps-marker">Delete</span>' );
     }
     if( null !== marker.name && null !== marker.content && undefined !== marker.name && undefined !== marker.content) {
@@ -779,6 +779,13 @@ function handleSearchingField( map ) {
                 parent.find( 'i.fa-angle-up' ).css( 'display', 'block' );
                 parent.find( 'i.fa-angle-down' ).css( 'display', 'none' );
             } );
+        }
+    } );
+
+    //Prevent Enter from submission
+    $( '#lb-gmaps-searching-field' ).on( 'keydown', function ( e ) {
+        if( 13 === e.keyCode ) {
+            e.preventDefault();
         }
     } );
 

@@ -20,12 +20,6 @@ function initMap() {
             handleSearchingField( map );
         }
 
-        $( '#lb-gmaps-searching-field' ).on( 'keydown', function ( e ) {
-            if( 13 === e.keyCode ) {
-                e.preventDefault();
-            }
-        } );
-
         mapDirections( map, markers, directionServiceOptions );
 
     }

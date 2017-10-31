@@ -80,7 +80,7 @@
 }
 
 #transfer-lb-gmaps-marker {
-    left: calc( (100% - 140px) / 2 );
+    left: calc( (100% - 80px) / 2 );
 }
 
 #lb-gmaps-marker-description span{

@@ -17,7 +17,8 @@
 }
 
 #lb-gmaps-fields::-webkit-scrollbar,
-#lb-gmaps-metabox::-webkit-scrollbar {
+#lb-gmaps-metabox::-webkit-scrollbar,
+#lb-gmaps-styles::-webkit-scrollbar {
     display: none;
 }
 
@@ -134,4 +135,21 @@
 .reordered-field {
     display: inline-block;
     width: 30%;
+}
+
+.lb-gmaps-styles-container {
+    height: 250px;
+}
+
+.lb-gmaps-styles-container label {
+    width: 95%;
+}
+
+#lb-gmaps-styles {
+    -ms-overflow-style: none;
+    width: 95%;
+    height: 200px;
+    resize: none;
+    padding: 10px;
+    border-radius: 15px;
 }

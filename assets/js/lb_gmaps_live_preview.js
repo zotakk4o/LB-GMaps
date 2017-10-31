@@ -281,6 +281,22 @@ function postFormHandler( map, mapAttributes, markers, mapMarkers, directionServ
         directionServiceOptions.meansOfTransport = e.target.checked;
     } );
 
+    //Handle styles textarea
+    $( '#lb-gmaps-styles' ).on( 'keyup', function ( e ) {
+        clearInterval( window.stylesTextarea );
+        window.stylesTextarea = setTimeout( function () {
+            if( isJsonString( $( e.target ).val() ) ) {
+                map.set( 'styles', JSON.parse( $( e.target ).val() ) );
+            } else {
+                map.set( 'styles', false );
+                if( ! field.siblings( '.lb-gmaps-dimensions-error' ).length ) {
+                    $( '#publish' ).prop( 'disabled', 'disabled' );
+                    field.parent().append( '<div class="lb-gmaps-dimensions-error lb-gmaps-error">' + messages.dimensionsError + '</div>' );
+                }
+            }
+        }, 800 );
+    } );
+
     var controls = $( '#lb-gmaps-fields select:not( [multiple] )' );
     for ( var i = 0; i < controls.length; i++ ) {
         var selectDropdown = $( controls[ i ] );
@@ -495,6 +511,15 @@ function triggerDimensionsEvent() {
 
 function getMetaboxHalfWidth() {
     return Math.ceil( 0.6 * $( '#lb-gmaps-metabox:not(.postbox)' ).width() )
+}
+
+function isJsonString( input ) {
+    try {
+        JSON.parse( input );
+    } catch ( error ) {
+        return false;
+    }
+    return true;
 }
 
 
