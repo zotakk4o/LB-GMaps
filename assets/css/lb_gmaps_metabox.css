@@ -140,6 +140,7 @@
 .lb-gmaps-styles-container {
     height: 250px;
     display: block !important;
+    margin-top: 50px;
 }
 
 .lb-gmaps-styles-container label {

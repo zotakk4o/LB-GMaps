@@ -31,13 +31,15 @@ class LB_GMaps_Ajaxer {
 	}
 
 	public function save_map_data() {
+		check_ajax_referer( 'programming-is-funny', 'security', true );
 		if( isset( $_POST['map'] ) && ! empty( $_POST['map'] ) ) {
-			$this->db_handler->save_map( $_POST['map'] );
+			var_dump($_POST['map']);
+			var_dump($this->db_handler->save_map( $_POST['map'] ));exit;
 		}
 
 		if( isset( $_POST['markers'] ) && ! empty( $_POST['markers'] ) && is_array( $_POST['markers'] ) ) {
 			foreach ( $_POST['markers'] as $marker_args ) {
-				$marker_args['uniqueness'] = md5( "{$marker_args['lat']}{$marker_args['lng']}" );
+				$marker_args['uniqueness'] = md5( "{$marker_args['lat']}{$marker_args['lng']}{$marker_args['post_id']}" );
 				$this->db_handler->save_marker( $marker_args );
 			}
 		}
@@ -45,6 +47,7 @@ class LB_GMaps_Ajaxer {
 	}
 
 	public function transfer_marker() {
+		check_ajax_referer( 'programming-is-funny', 'security', true );
 		if( isset( $_POST['map_id'] ) && isset( $_POST['marker'] ) && ! empty( $_POST['marker'] ) ) {
 			$marker_args = $_POST['marker'];
 			$marker_args['post_id'] = $_POST['map_id'];
@@ -67,23 +70,21 @@ class LB_GMaps_Ajaxer {
 	}
 
 	public function save_marker_data() {
+		check_ajax_referer( 'programming-is-funny', 'security', true );
 		if( isset( $_POST['marker'] ) && ! empty( $_POST['marker'] ) ) {
 			$marker_args = $_POST['marker'];
-			if( ! isset( $marker_args['uniqueness'] ) ) {
-				$marker_args['uniqueness'] = md5( "{$marker_args['lat']}{$marker_args['lng']}{$marker_args['post_id']}" );
-			}
+			$marker_args['uniqueness'] = md5( "{$marker_args['lat']}{$marker_args['lng']}{$marker_args['post_id']}" );
 			wp_send_json( $this->get_db_handler()->save_marker( $marker_args ) );
 		}
 		wp_die();
 	}
 
 	public function delete_marker_data() {
+		check_ajax_referer( 'programming-is-funny', 'security', true );
 		if( isset( $_POST['marker'] ) ) {
 			$marker_args = $_POST['marker'];
-			if( ! isset( $marker_args['uniqueness'] ) ) {
-				$marker_args['uniqueness'] = md5( "{$marker_args['lat']}{$marker_args['lng']}" );
-			}
-			wp_send_json( $this->get_db_handler()->delete( $this->get_db_handler()->get_markers_table_name(), array( 'uniqueness' => $marker_args['uniqueness'] ) ) );
+			$marker_args['uniqueness'] = md5( "{$marker_args['lat']}{$marker_args['lng']}{$marker_args['post_id']}" );
+			wp_send_json( $this->get_db_handler()->delete( $this->get_db_handler()->get_markers_table_name(), array( 'uniqueness' => $marker_args['uniqueness'], 'post_id' => $marker_args['post_id'] ) ) );
 		}
 		wp_die();
 	}

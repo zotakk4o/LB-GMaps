@@ -11,7 +11,7 @@ function initMap() {
         var map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), parseMapData( data.map ) );
         mapAttributes = data.map;
         directionServiceOptions = parseDirectionsOptions( data.map );
-        if( mapAttributes.dir_searching_field ) {
+        if( 'true' === mapAttributes.dir_searching_field ) {
             $( '#lb-gmaps-live-preview' ).append( helperViews.searchingField );
             handleSearchingField( map );
         }
@@ -23,7 +23,7 @@ function initMap() {
             gestureHandling: 'none'
         });
         directionServiceOptions = {
-            directions: true,
+            directions: false,
             routeMarkers: false,
             waypointsMarkers: false,
             routeInfowindow: false,
@@ -46,9 +46,10 @@ function initMap() {
     } )( map, mapAttributes, markers, mapMarkers, directionServiceOptions );
 
     map.addListener( 'dblclick', function ( event ) {
-        ( function ( map, markers ) {
-            createMarker( map, event.latLng, markers )
-        } )( map, markers );
+        ( function ( map, markers, mapMarkers ) {
+            createMarker( map, event.latLng, markers, mapMarkers );
+        } )( map, markers, mapMarkers );
+        mapDirections( map, mapMarkers, directionServiceOptions );
     } );
 
     $( '#publish' ).on( 'click', function ( e ) {
@@ -73,7 +74,8 @@ function initMap() {
             data: {
                 action: 'save_map_data',
                 map: mapAttributes,
-                markers: markers
+                markers: markers,
+                security: admin.ajaxNonce
             }
         } );
     } );
@@ -186,9 +188,10 @@ function postFormHandler( map, mapAttributes, markers, mapMarkers, directionServ
             ].join(' ');
         }
 
-        ( function ( map, markers ) {
-            createMarker( map, place.geometry.location, markers )
-        } )( map, markers );
+        ( function ( map, markers, mapMarkers ) {
+            createMarker( map, place.geometry.location, markers, mapMarkers );
+        } )( map, markers, mapMarkers );
+        mapDirections( map, mapMarkers, directionServiceOptions );
 
 
     });
@@ -249,12 +252,12 @@ function postFormHandler( map, mapAttributes, markers, mapMarkers, directionServ
     //Handle searching field. If ticked the user will be able to search venues from it.
     $( '#lb-gmaps-map-route-searching-field' ).on( 'change', function ( e ) {
         mapAttributes.dir_searching_field = e.target.checked;
-         if( e.target.checked ) {
-             $( '#lb-gmaps-live-preview' ).append( helperViews.searchingField );
-             handleSearchingField( map );
-         } else {
-             $( '#lb-gmaps-searching-field-container' ).remove();
-         }
+        if( e.target.checked ) {
+            $( '#lb-gmaps-live-preview' ).append( helperViews.searchingField );
+            handleSearchingField( map );
+        } else {
+            $( '#lb-gmaps-searching-field-container' ).remove();
+        }
     } );
 
     //Handle markers creation at the end and beginning of a route
@@ -492,7 +495,7 @@ function attachDomReadyEvents() {
     } );
 }
 
-function createMarker( map, location, markers ) {
+function createMarker( map, location, markers, mapMarkers ) {
     var marker = new google.maps.Marker({
         map: map
     });
@@ -505,6 +508,7 @@ function createMarker( map, location, markers ) {
         lng: marker.position.lng()
     };
     markers[ marker.position.lat() + marker.position.lng() ] = markerObject;
+    mapMarkers.push( marker );
     showMarkerForm( map, marker, markers );
 }
 

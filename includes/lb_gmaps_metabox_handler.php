@@ -39,6 +39,8 @@ class LB_GMaps_Metabox_Handler {
 			$this->set_map_data( $this->get_ajaxer()->get_db_handler()->get_row_by_post_id( $this->get_ajaxer()->get_db_handler()->get_maps_table_name(), $post->ID ) );
 			$this->set_markers_data( $this->get_ajaxer()->get_db_handler()->get_rows_by_post_id( $this->get_ajaxer()->get_db_handler()->get_markers_table_name(), $post->ID ) );
 
+			$ajax_nonce = wp_create_nonce( 'programming-is-funny' );
+
 			wp_register_script( 'lb-gmaps-live-preview', LB_GMAPS_ASSETS . 'js/lb_gmaps_live_preview.js', array( 'lb-gmaps-helper-functions' ) );
 			wp_localize_script( 'lb-gmaps-live-preview', 'views',
 				array( 'form' => $this->get_content_of_view( 'marker', 'form' ),
@@ -49,7 +51,7 @@ class LB_GMaps_Metabox_Handler {
 				array( 'ID' => $post->ID )
 			);
 			wp_localize_script( 'lb-gmaps-live-preview', 'admin',
-				array( 'ajaxURL' => admin_url( 'admin-ajax.php', ( is_ssl() ? 'https' : 'http' ) ) )
+				array( 'ajaxURL' => admin_url( 'admin-ajax.php', ( is_ssl() ? 'https' : 'http' ) ), 'ajaxNonce' => $ajax_nonce )
 			);
 			wp_localize_script( 'lb-gmaps-live-preview', 'data',
 				array( 'map' => $this->get_map_data(),
@@ -76,7 +78,7 @@ class LB_GMaps_Metabox_Handler {
 					'travelModes' => $this->get_content_of_view( 'map', 'directions_type' ),
 					'searchingField' => $this->get_content_of_view( 'map', 'searching_field' )
 				)
-			);;
+			);
 			wp_enqueue_script( 'lb-gmaps-helper-functions' );
 			wp_enqueue_script( 'lb-gmaps-live-preview' );
 			wp_enqueue_script( 'lb-google-map', 'https://maps.googleapis.com/maps/api/js?key=' . get_option( LB_GMAPS_API_KEY ) . '&libraries=places&callback=initMap', array( 'lb-gmaps-live-preview' ) );

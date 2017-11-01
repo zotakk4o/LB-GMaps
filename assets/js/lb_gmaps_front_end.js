@@ -15,7 +15,7 @@ function initMap() {
             }
         }
 
-        if( data.map.dir_searching_field ) {
+        if( 'true' === data.map.dir_searching_field ) {
             $( '#lb-gmaps-front-end' ).append( helperViews.searchingField );
             handleSearchingField( map );
         }

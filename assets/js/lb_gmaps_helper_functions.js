@@ -47,7 +47,6 @@ function styleInfowindow( infowindow ) {
 
 function showMarkerForm( map, marker, markers ) {
     var markerObject = {
-        uniqueness: marker.uniqueness,
         post_id: post.ID,
         lat: marker.position.lat(),
         lng: marker.position.lng()
@@ -130,13 +129,17 @@ function showMarkerForm( map, marker, markers ) {
     validateMarkerForm( markerForm );
 
     $( '#cancel-button' ).on( 'click', function () {
-        tinymce.get('marker_description').remove();
+        if( tinymce.get('marker_description') ) {
+            tinymce.get('marker_description').remove();
+        }
         markerForm.remove();
         displayInfoWindow( map, marker, true, markers );
     } );
 
     $( '#save-button' ).on( 'click', function () {
-        tinymce.get('marker_description').remove();
+        if( tinymce.get('marker_description') ) {
+            tinymce.get('marker_description').remove();
+        }
         markerObject.name = $.trim( $( '#marker_name' ).val() );
         markerObject.content = $.trim( $( '#marker_description' ).val() );
         markerForm.remove();
@@ -145,7 +148,8 @@ function showMarkerForm( map, marker, markers ) {
             url: admin.ajaxURL,
             data: {
                 action: 'save_marker_data',
-                marker: markerObject
+                marker: markerObject,
+                security: admin.ajaxNonce
             }
         } ).then( function (data) {
             if( data ) {
@@ -212,7 +216,8 @@ function addMarkerClickListener( map, marker, markers, content, infoWindow ) {
                                                     data: {
                                                         action: 'transfer_marker',
                                                         marker: parseMarkerData( marker ),
-                                                        map_id: mapId
+                                                        map_id: mapId,
+                                                        security: admin.ajaxNonce
                                                     }
                                                 } ).then( function ( data ) {
                                                     if( data ) {
@@ -269,7 +274,7 @@ function deleteMarker( marker, markers ) {
     $( '.gm-style-iw' ).parent().remove();
     google.maps.event.clearListeners( marker, 'click' );
     var markerObject = {
-        uniqueness: marker.uniqueness,
+        post_id: post.ID,
         lat: marker.position.lat(),
         lng: marker.position.lng()
     };
@@ -278,16 +283,23 @@ function deleteMarker( marker, markers ) {
         url: admin.ajaxURL,
         data: {
             action: 'delete_marker_data',
-            marker: markerObject
+            marker: markerObject,
+            security: admin.ajaxNonce
         }
     } ).then( function ( data ) {
-        tinymce.get('marker_description').remove();
-        marker.setMap( null );
-        if( ! marker.hasOwnProperty( 'lat' ) && ! marker.hasOwnProperty( 'lng' ) ) {
+        if( tinymce.get('marker_description') ) {
+            tinymce.get('marker_description').remove();
+        }
+
+        marker.setVisible( false );
+
+        if( ! marker.hasOwnProperty( 'lat' ) && ! marker.hasOwnProperty( 'lng' ) && markers ) {
             delete markers[ marker.position.lat() + marker.position.lng() ];
         }
 
-        $( '#lb-gmaps-marker-form' ).remove();
+        if( $( '#lb-gmaps-marker-form' ).length ) {
+            $( '#lb-gmaps-marker-form' ).remove();
+        }
     } )
 }
 
@@ -365,7 +377,6 @@ function parseMapData( data ) {
 
 function parseMarkerData( data ) {
     var markerData = {
-        uniqueness: data.uniqueness,
         lat: parseFloat( data.lat ),
         lng: parseFloat( data.lng )
     };
@@ -390,7 +401,10 @@ function parseMarkerData( data ) {
 }
 
 function mapDirections( map, markers, options ) {
-    if( 'false' === options.directions ) {
+    for( var key in options ) {
+        options[ key ] = JSON.parse( options[ key ] );
+    }
+    if( 'false' === options.directions || ! options.directions ) {
         google.maps.event.clearListeners( map , 'rightclick' );
         for ( var i = 0; i < markers.length; i++ ) {
             google.maps.event.clearListeners( markers[ i ] , 'rightclick' );
@@ -422,7 +436,7 @@ function mapDirections( map, markers, options ) {
         overlay.setMap( map );
 
         google.maps.event.addListener( map, 'rightclick', function ( event ) {
-            if( event.hasOwnProperty( 'uniqueness' ) ) {
+            if( event.hasOwnProperty( 'isMarker' ) ) {
                 var lpx =  overlay.getProjection().fromLatLngToContainerPixel( event.getPosition() );
                 rightClickEvent( {
                     isMarker: event.isMarker,
@@ -525,11 +539,9 @@ function mapDirections( map, markers, options ) {
                     newMarkers.map( m => m.setMap( null ) );
                     if( polyline ) {
                         polyline.setMap( null );
-                        polyline = undefined;
                     }
                     if( infowindow ) {
                         infowindow.setMap( null );
-                        infowindow = undefined;
                     }
 
                     $( '#lb-gmaps-directions-type' ).remove();
@@ -565,6 +577,7 @@ function mapDirections( map, markers, options ) {
                     }
 
                     if( 2 === bothButtonsClicked ) {
+                        waypointsDuplicate = [];
                         waypoints = [];
                         startEvent = newStartEvent;
                         endEvent = newEndEvent;
@@ -608,7 +621,7 @@ function mapDirections( map, markers, options ) {
                                 if ( routeLegs.length - 1 === i && ! endEvent.isMarker && options.routeMarkers ) {
                                     createMarkerAtLeg(routeLegs[i], 'end');
                                 }
-                                if ( i !== 0 && !waypointsDuplicate[i - 1].isMarker && ( i - 1 ) <= waypointsDuplicate.length - 1 && options.waypointsMarkers ) {
+                                if ( i !== 0 && i <= waypointsDuplicate.length && ! waypointsDuplicate[i - 1].isMarker  && options.waypointsMarkers ) {
                                     createMarkerAtLeg(routeLegs[i], 'start');
                                 }
                                 var steps = routeLegs[i].steps;
@@ -760,7 +773,7 @@ function parseDirectionsOptions( mapData ) {
     var obj = {
         directions: mapData.directions
     };
-    var keys = Object.keys( mapData ).filter( k => -1 !== k.indexOf( 'dir_' ) );
+    var keys = Object.keys( mapData ).filter( k => -1 !== k.indexOf( 'dir_' ) && -1 === k.indexOf( 'search' ) );
     for ( var i = 0; i < keys.length; i++ ) {
         var key = keys[ i ].replace( 'dir_', '' ).replace( /_([a-z]){1}/g, ( m, l ) => { return l.toUpperCase() } );
         obj[ key ] = mapData[ keys[ i ] ];
