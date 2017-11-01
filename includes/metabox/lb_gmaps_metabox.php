@@ -90,7 +90,7 @@
 		</div>
 		<div class="lb-gmaps-form-group lb-gmaps-styles-container">
 			<label for="lb-gmaps-styles"><?php echo __( 'Add JSON format styles from ', 'lb-gmaps' ) ?><a target="_blank" href="https://mapstyle.withgoogle.com/"><?php  echo __( 'here', 'lb-gmaps' ) ?></a></label>
-			<textarea id="lb-gmaps-styles"></textarea>
+			<textarea id="lb-gmaps-styles"><?php if( $this->get_map_data() && ! empty( $this->get_map_data()->styles ) ) { echo preg_replace( '/\\\(\'|")/', '$1' , $this->get_map_data()->styles ); } ?></textarea>
 		</div>
 	</div>
 	<div id="lb-gmaps-live-preview" oncontextmenu="return false;"></div>

@@ -60,16 +60,12 @@ function initMap() {
             mapAttributes.map_types = mapAttributes.map_types.join( ', ' );
         }
         mapAttributes.gesture_handling = map.get( 'gestureHandling' );
+        mapAttributes.styles = JSON.stringify( map.get( 'styles' ) );
         var directionsKeys = Object.keys( directionServiceOptions );
         for (var i = 0; i < directionsKeys.length; i++) {
             var key = directionsKeys[ i ].replace( /[A-Z]+/g, '_$&' ).toLowerCase();
             'directions' !== key ? key = 'dir_' + key : key;
             mapAttributes[ key ] = directionServiceOptions[ directionsKeys[ i ] ];
-        }
-        var ajaxArr = [];
-        var keys = Object.keys( markers );
-        for (var i = 0; i < keys.length; i++) {
-            ajaxArr.push( markers[ keys[ i ] ] );
         }
         $.ajax( {
             type: "POST",
@@ -77,7 +73,7 @@ function initMap() {
             data: {
                 action: 'save_map_data',
                 map: mapAttributes,
-                markers: ajaxArr
+                markers: markers
             }
         } );
     } );
@@ -285,15 +281,22 @@ function postFormHandler( map, mapAttributes, markers, mapMarkers, directionServ
     $( '#lb-gmaps-styles' ).on( 'keyup', function ( e ) {
         clearInterval( window.stylesTextarea );
         window.stylesTextarea = setTimeout( function () {
-            if( isJsonString( $( e.target ).val() ) ) {
-                map.set( 'styles', JSON.parse( $( e.target ).val() ) );
+            var btn = $( '#publish' );
+            var field = $( e.target );
+            if( isJsonString( field.val() ) || '' === field.val() ) {
+                '' !== field.val() ? map.set( 'styles', JSON.parse( field.val() ) ) : map.set( 'styles', undefined );
+                if( field.siblings( '.lb-gmaps-error' ).length ) {
+                    field.siblings( '.lb-gmaps-error' ).remove();
+                    btn.attr( 'errors-count', btn.attr( 'errors-count' ) * 1 - 1 );
+                }
             } else {
-                map.set( 'styles', false );
-                if( ! field.siblings( '.lb-gmaps-dimensions-error' ).length ) {
-                    $( '#publish' ).prop( 'disabled', 'disabled' );
-                    field.parent().append( '<div class="lb-gmaps-dimensions-error lb-gmaps-error">' + messages.dimensionsError + '</div>' );
+                map.set( 'styles', undefined );
+                if( ! field.siblings( '.lb-gmaps-error' ).length ) {
+                    btn.attr( 'errors-count', btn.attr( 'errors-count' ) * 1 + 1 );
+                    $( '<div class="lb-gmaps-error">' + messages.stylesError + '</div>' ).insertAfter( field.siblings( 'label' ) );
                 }
             }
+            handleSubmitButtonErrors();
         }, 800 );
     } );
 
@@ -409,19 +412,23 @@ function handleDimensionField( selector, map, mapAttributes ) {
 
 function handleField( field ) {
     var fieldType = field.attr( 'id' ).indexOf( 'height' ) !== -1 ? 'height' : 'width';
+    var btn = $( '#publish' );
 
     if( field.val().match( /^[0-9]+(px|%)$/ ) ) {
-        field.siblings( '.lb-gmaps-dimensions-error' ).remove();
-        $( '#publish' ).prop( 'disabled', '' );
         adjustDimensionsValue( field );
         $( '#lb-gmaps-live-preview' ).css( fieldType, field.val() );
         triggerDimensionsEvent();
+        if( field.siblings( '.lb-gmaps-dimensions-error' ).length ) {
+            btn.attr( 'errors-count', btn.attr( 'errors-count' ) * 1 - 1 );
+            field.siblings( '.lb-gmaps-dimensions-error' ).remove();
+        }
     } else {
         if( ! field.siblings( '.lb-gmaps-dimensions-error' ).length ) {
-            $( '#publish' ).prop( 'disabled', 'disabled' );
             field.parent().append( '<div class="lb-gmaps-dimensions-error lb-gmaps-error">' + messages.dimensionsError + '</div>' );
+            btn.attr( 'errors-count', btn.attr( 'errors-count' ) * 1 + 1 );
         }
     }
+    handleSubmitButtonErrors();
 }
 
 function adjustDimensionsValue( field ) {
@@ -479,6 +486,8 @@ function attachDomReadyEvents() {
                 e.preventDefault();
             }
         } );
+
+        $( '#publish' ).attr( 'errors-count', 0 );
         triggerDimensionsEvent();
     } );
 }
@@ -520,6 +529,15 @@ function isJsonString( input ) {
         return false;
     }
     return true;
+}
+
+function handleSubmitButtonErrors() {
+    var btn = $( '#publish' );
+    if( 0 == btn.attr( 'errors-count' ) ) {
+        btn.prop( 'disabled', '' );
+    } else {
+        btn.prop( 'disabled', 'disabled' );
+    }
 }
 
 

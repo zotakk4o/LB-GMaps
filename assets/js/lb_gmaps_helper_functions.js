@@ -349,7 +349,12 @@ function parseMapData( data ) {
             } else if( key !== 'map_types' && '' !== data[key] && null !== data[ key ] ){
                 var jsKey = key.split( '_' ).map( ( x ) => {return x[0].toUpperCase() + x.slice( 1 )} ).join( '' );
                 jsKey = jsKey[0].toLowerCase() + jsKey.slice( 1 );
-                mapData[ jsKey ] = data[ key ];
+                if( 'styles' === key ) {
+                    mapData[ jsKey ] = JSON.parse( data[key].replace(/\\("|')/g, '$1' ) );
+                } else {
+                    mapData[ jsKey ] = data[ key ];
+                }
+
             }
         }
     }

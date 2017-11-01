@@ -139,6 +139,7 @@
 
 .lb-gmaps-styles-container {
     height: 250px;
+    display: block !important;
 }
 
 .lb-gmaps-styles-container label {

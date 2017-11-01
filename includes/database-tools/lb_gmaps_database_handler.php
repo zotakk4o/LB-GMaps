@@ -43,6 +43,7 @@ class LB_GMaps_Database_Handler {
 			map_types VARCHAR(20) NULL,
 			width VARCHAR(10) NOT NULL DEFAULT \"50%\",
 			height VARCHAR(10) NOT NULL DEFAULT \"800px\",
+			styles text NULL,
 			directions VARCHAR(10) NULL,
 			dir_searching_field VARCHAR(10) NULL,
 			dir_means_of_transport VARCHAR(10) NULL,
