@@ -326,7 +326,7 @@ function displayInfoWindow( map, marker, withButtons, markers ) {
         }
         var textContent = content[0].outerHTML;
         var infoWindow = new google.maps.InfoWindow( {
-            maxWidth: 300
+            maxWidth: 175
         } );
 
         styleInfowindow( infoWindow );
