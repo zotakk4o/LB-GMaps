@@ -11,7 +11,7 @@
 	<div class="lb-gmaps-marker-form-group description">
 		<label>
 			Description*
-			<textarea class="marker-field" name="marker_description" id="marker_description"></textarea>
+			<textarea class="marker-field" id="marker_description"></textarea>
 		</label>
 	</div>
 	<div class="buttons-group">

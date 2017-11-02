@@ -1,7 +1,7 @@
 function initMap() {
     var markers = {};
-    var directionServiceOptions = {};
     var mapMarkers = [];
+    var directionServiceOptions;
     var mapAttributes = {
         post_id: post.ID
     };
@@ -10,7 +10,8 @@ function initMap() {
         $( '#lb-gmaps-live-preview' ).css({height: data.map.height, width: data.map.width});
         var map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), parseMapData( data.map ) );
         mapAttributes = data.map;
-        directionServiceOptions = parseDirectionsOptions( data.map );
+        directionServiceOptions = getMapDirectionsDefaults( map );
+        directionServiceOptions.options = parseDirectionsOptions( data.map );
         if( 'true' === mapAttributes.dir_searching_field ) {
             $( '#lb-gmaps-live-preview' ).append( helperViews.searchingField );
             handleSearchingField( map );
@@ -22,7 +23,8 @@ function initMap() {
             disableDefaultUI: true,
             gestureHandling: 'none'
         });
-        directionServiceOptions = {
+        directionServiceOptions = getMapDirectionsDefaults( map );
+        directionServiceOptions.options = {
             directions: false,
             routeMarkers: false,
             waypointsMarkers: false,
@@ -46,10 +48,11 @@ function initMap() {
     } )( map, mapAttributes, markers, mapMarkers, directionServiceOptions );
 
     map.addListener( 'dblclick', function ( event ) {
-        ( function ( map, markers, mapMarkers ) {
+        ( function ( map, markers, mapMarkers, directionServiceOptions ) {
             createMarker( map, event.latLng, markers, mapMarkers );
-        } )( map, markers, mapMarkers );
-        mapDirections( map, mapMarkers, directionServiceOptions );
+            mapDirections( map, mapMarkers, directionServiceOptions );
+        } )( map, markers, mapMarkers, directionServiceOptions );
+
     } );
 
     $( '#publish' ).on( 'click', function ( e ) {
@@ -62,11 +65,11 @@ function initMap() {
         }
         mapAttributes.gesture_handling = map.get( 'gestureHandling' );
         mapAttributes.styles = JSON.stringify( map.get( 'styles' ) );
-        var directionsKeys = Object.keys( directionServiceOptions );
+        var directionsKeys = Object.keys( directionServiceOptions.options );
         for (var i = 0; i < directionsKeys.length; i++) {
             var key = directionsKeys[ i ].replace( /[A-Z]+/g, '_$&' ).toLowerCase();
             'directions' !== key ? key = 'dir_' + key : key;
-            mapAttributes[ key ] = directionServiceOptions[ directionsKeys[ i ] ];
+            mapAttributes[ key ] = directionServiceOptions.options[ directionsKeys[ i ] ];
         }
         $.ajax( {
             type: "POST",
@@ -188,10 +191,11 @@ function postFormHandler( map, mapAttributes, markers, mapMarkers, directionServ
             ].join(' ');
         }
 
-        ( function ( map, markers, mapMarkers ) {
+        ( function ( map, markers, mapMarkers, directionServiceOptions ) {
             createMarker( map, place.geometry.location, markers, mapMarkers );
-        } )( map, markers, mapMarkers );
-        mapDirections( map, mapMarkers, directionServiceOptions );
+            mapDirections( map, mapMarkers, directionServiceOptions );
+        } )( map, markers, mapMarkers, directionServiceOptions );
+
 
 
     });
@@ -245,8 +249,10 @@ function postFormHandler( map, mapAttributes, markers, mapMarkers, directionServ
 
     //Handle directions field. If ticked the user will be able to create routes
     $( '#lb-gmaps-map-directions' ).on( 'change', function ( e ) {
-        directionServiceOptions.directions = e.target.checked;
-        mapDirections( map, mapMarkers, directionServiceOptions );
+        directionServiceOptions.options.directions = e.target.checked;
+        ( function ( map, mapMarkers, directionServiceOptions ) {
+            mapDirections( map, mapMarkers, directionServiceOptions );
+        } )( map, mapMarkers, directionServiceOptions );
     } );
 
     //Handle searching field. If ticked the user will be able to search venues from it.
@@ -262,22 +268,22 @@ function postFormHandler( map, mapAttributes, markers, mapMarkers, directionServ
 
     //Handle markers creation at the end and beginning of a route
     $( '#lb-gmaps-map-route-markers' ).on( 'change', function ( e ) {
-        directionServiceOptions.routeMarkers = e.target.checked;
+        directionServiceOptions.options.routeMarkers = e.target.checked;
     } );
 
     //Handle markers creation at each waypoint
     $( '#lb-gmaps-map-waypoints-markers' ).on( 'change', function ( e ) {
-        directionServiceOptions.waypointsMarkers = e.target.checked;
+        directionServiceOptions.options.waypointsMarkers = e.target.checked;
     } );
 
     //Handle Infowindows on routes
     $( '#lb-gmaps-map-directions-infowindow' ).on( 'click', function ( e ) {
-        directionServiceOptions.routeInfowindow = e.target.checked;
+        directionServiceOptions.options.routeInfowindow = e.target.checked;
     } );
 
     //Handle Means of Transport field
     $( '#lb-gmaps-map-means-of-transport' ).on( 'click', function ( e ) {
-        directionServiceOptions.meansOfTransport = e.target.checked;
+        directionServiceOptions.options.meansOfTransport = e.target.checked;
     } );
 
     //Handle styles textarea

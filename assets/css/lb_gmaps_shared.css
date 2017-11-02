@@ -30,7 +30,7 @@ div.lb-gmaps-dimensions-error {
 }
 
 #lb-gmaps-context-menu #direction-options {
-    width: 100%;
+    width: calc( 100% - 12px );
     margin: 0;
     list-style-type: none;
 }

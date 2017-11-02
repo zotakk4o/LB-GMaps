@@ -33,8 +33,7 @@ class LB_GMaps_Ajaxer {
 	public function save_map_data() {
 		check_ajax_referer( 'programming-is-funny', 'security', true );
 		if( isset( $_POST['map'] ) && ! empty( $_POST['map'] ) ) {
-			var_dump($_POST['map']);
-			var_dump($this->db_handler->save_map( $_POST['map'] ));exit;
+			$this->db_handler->save_map( $_POST['map'] );
 		}
 
 		if( isset( $_POST['markers'] ) && ! empty( $_POST['markers'] ) && is_array( $_POST['markers'] ) ) {

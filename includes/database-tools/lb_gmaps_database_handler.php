@@ -37,7 +37,6 @@ class LB_GMaps_Database_Handler {
 			gesture_handling VARCHAR(20) NULL,
 			scale_control VARCHAR(10) NULL,
 			street_view_control VARCHAR(10) NULL,
-			rotate_control VARCHAR(10) NULL,
 			fullscreen_control VARCHAR(10) NULL,
 			map_type_control VARCHAR(10) NULL,
 			map_types VARCHAR(20) NULL,
