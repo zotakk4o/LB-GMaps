@@ -44,7 +44,7 @@ function styleInfowindow( infowindow ) {
         });
     });
 }
-
+//Displays form after map creation and form for editing
 function showMarkerForm( map, marker, markers ) {
     var markerObject = {
         post_id: post.ID,
@@ -75,10 +75,11 @@ function showMarkerForm( map, marker, markers ) {
     var markerFormWidth = $( 'body > #lb-gmaps-marker-form' ).width();
     $( 'body > #lb-gmaps-marker-form' ).remove();
 
-    if( mapContainer.height() < markerFormHeight + 20 && mapContainer.width() <= getMetaboxHalfWidth() ) {
+    //Here lays the logic where to display the marker form regarding the dimensions of the map
+    if( mapContainer.height() < markerFormHeight + 20 && mapContainer.width() <= getMapPartOfMetabox() ) {
         markerForm.css( { 'left': 'initial', 'bottom': mapContainer.height() + 50, 'right': 'calc( ( 60% - 280px ) / 2 )' } );
         markerForm.insertBefore( '#lb-gmaps-fields' );
-    } else if( mapContainer.height() < markerFormHeight + 20 && mapContainer.width() > getMetaboxHalfWidth() ) {
+    } else if( mapContainer.height() < markerFormHeight + 20 && mapContainer.width() > getMapPartOfMetabox() ) {
         markerForm.css( { 'left': 'initial', 'bottom': '420px', 'right': 'calc( ( 100% - 280px ) / 2 )' } );
         markerForm.insertBefore( '#lb-gmaps-fields' );
     } else if ( mapContainer.width() < markerFormWidth ){
@@ -136,17 +137,13 @@ function showMarkerForm( map, marker, markers ) {
     validateMarkerForm( markerForm );
 
     $( '#cancel-button' ).on( 'click', function () {
-        if( tinymce.get('marker_description') ) {
-            tinymce.get('marker_description').remove();
-        }
+        dispatchTinyMCE();
         markerForm.remove();
         displayInfoWindow( map, marker, true, markers );
     } );
 
     $( '#save-button' ).on( 'click', function () {
-        if( tinymce.get('marker_description') ) {
-            tinymce.get('marker_description').remove();
-        }
+        dispatchTinyMCE();
         markerObject.name = $.trim( $( '#marker_name' ).val() );
         markerObject.content = $.trim( $( '#marker_description' ).val() );
         markerForm.remove();
@@ -172,11 +169,14 @@ function showMarkerForm( map, marker, markers ) {
     } );
 }
 
+//This function handles the click on a marker
 function addMarkerClickListener( map, marker, markers, content, infoWindow ) {
+    //Remove old listener for its function may have been to show a content form
     google.maps.event.clearListeners( marker, 'click' );
     google.maps.event.addListener( marker, 'click', ( function( marker, markers, content, infoWindow ) {
         return function() {
-            if( undefined !== infoWindow && undefined !== infoWindow && undefined !== content ) {
+            //If there is data for the given marker - show the infowindow
+            if( undefined !== infoWindow && undefined !== content ) {
                 infoWindow.setContent( content );
                 if( undefined === infoWindow.getMap() || null === infoWindow.getMap() ) {
                     infoWindow.open( map, marker );
@@ -232,11 +232,10 @@ function addMarkerClickListener( map, marker, markers, content, infoWindow ) {
                                                     }
                                                     if( succeeded === maps.length ) {
                                                         $( '#transfer-maps-container' ).empty().append( '<div class="lb-gmaps-success">' + messages.markerSuccess + '</div>' );
-                                                        restoreMarkerAfterAjax();
-                                                    } else if( succeeded !== maps.length ) {
+                                                    } else {
                                                         $( '#transfer-maps-container' ).empty().append( '<div class="lb-gmaps-error">' + messages.markerError + '</div>' );
-                                                        restoreMarkerAfterAjax();
                                                     }
+                                                    restoreMarkerAfterAjax();
                                                 } );
                                             }
                                         }
@@ -270,6 +269,7 @@ function addMarkerClickListener( map, marker, markers, content, infoWindow ) {
                     } )
                 }
             } else {
+                //If there is no data for the marker - show form
                 showMarkerForm( map, marker, markers );
             }
 
@@ -277,6 +277,7 @@ function addMarkerClickListener( map, marker, markers, content, infoWindow ) {
     } )( marker, markers, content, infoWindow ) );
 }
 
+//Delete marker from database and hide from map
 function deleteMarker( marker, markers ) {
     $( '.gm-style-iw' ).parent().remove();
     google.maps.event.clearListeners( marker, 'click' );
@@ -294,9 +295,7 @@ function deleteMarker( marker, markers ) {
             security: admin.ajaxNonce
         }
     } ).then( function ( data ) {
-        if( tinymce.get('marker_description') ) {
-            tinymce.get('marker_description').remove();
-        }
+        dispatchTinyMCE();
 
         marker.setVisible( false );
 
@@ -310,6 +309,7 @@ function deleteMarker( marker, markers ) {
     } )
 }
 
+//Create the content of the info window, style it and pass it to the handler.
 function displayInfoWindow( map, marker, withButtons, markers ) {
     var content = $( views.infoBox );
     if( withButtons ) {
@@ -339,6 +339,7 @@ function displayInfoWindow( map, marker, withButtons, markers ) {
 
 }
 
+//Convert database data to an object, usable by JS
 function parseMapData( data ) {
     var mapData = {
         disableDefaultUI: true
@@ -382,6 +383,7 @@ function parseMapData( data ) {
     return mapData;
 }
 
+//Convert database data to an object, usable by JS
 function parseMarkerData( data ) {
     var markerData = {
         lat: parseFloat( data.lat ),
@@ -407,24 +409,30 @@ function parseMarkerData( data ) {
     return markerData;
 }
 
+//This function handles all the logic for the routing system
 function mapDirections( map, markers, settings ) {
+    //A small hack to parse string bool to bool -> "false" = false
     for( var key in settings.options ) {
         settings.options[ key ] = JSON.parse( settings.options[ key ] );
     }
+    //If the admin finally decides to remove the routing option we have to dispatch all event listeners
     if( ! settings.options.directions ) {
         google.maps.event.clearListeners( map , 'rightclick' );
         for ( var i = 0; i < markers.length; i++ ) {
             google.maps.event.clearListeners( markers[ i ] , 'rightclick' );
         }
     } else {
+        //A must functions that have to be declared though they are not used...
         settings.overlay.draw = function() {};
         settings.overlay.onAdd = function () {};
         settings.overlay.onRemove = function () {};
 
         settings.overlay.setMap( map );
 
-
+        //The magic starts here on right click triggered by the user
         google.maps.event.addListener( map, 'rightclick', function ( event ) {
+            // If the right click was executed on a marker then we have to tweak the event's data because
+            // by default the event of a marker does not have pixel coordinates
             if( event.hasOwnProperty( 'isMarker' ) ) {
                 var lpx =  settings.overlay.getProjection().fromLatLngToContainerPixel( event.getPosition() );
                 rightClickEvent( {
@@ -438,6 +446,7 @@ function mapDirections( map, markers, settings ) {
             }
         } );
 
+        //Attach right click listener to each marker
         for ( var i = 0; i < markers.length; i++ ) {
             google.maps.event.addListener( markers[ i ], 'rightclick', function () {
                 this.isMarker = true;
@@ -445,24 +454,41 @@ function mapDirections( map, markers, settings ) {
             } );
         }
 
+        //Attach right click event listener to the map
         google.maps.event.addListener( map, 'click', function () {
             $( '#lb-gmaps-context-menu' ).remove();
         } );
 
+        //Handle the right click event
         function rightClickEvent( event ) {
+            //If this is not the first right click we have to delete the previous context menu
             settings.mapContainer.find( '#lb-gmaps-context-menu' ).remove();
             var menu = $( helperViews.contextMenu );
 
+            //Remove the redundant buttons accordingly to the situation
+            //If the user has clicked the "Direction from" button - on the next click it shouldn't appear
             if( ! settings.directionFrom ) {
                 menu.find( '#direction-from' ).remove();
             }
 
+            //The same goes for this option
             if( ! settings.directionTo ) {
                 menu.find( '#direction-to' ).remove();
             }
 
-            if( ! settings.polyline || menu.find( '#direction-to' ).length > 0 ) {
+            //Here we have to check whether the route has been drown and if true - show the "Add waypoint" button
+            //However we want to hide it if the user has clicked the "Direction from" option
+            //or it is already an origin, waypoint or destination point
+            if( ! settings.polyline
+                || menu.find( '#direction-to' ).length > 0
+                || false !== isMarkerInWaypoints( event, settings.waypointsDuplicate )
+                || isMarkerOriginOrDestination( event, settings.startEvent, settings.endEvent )
+            ) {
                 menu.find( '#add-waypoint' ).remove();
+            }
+
+            if( false === isMarkerInWaypoints( event, settings.waypointsDuplicate ) ) {
+                menu.find( '#remove-waypoint' ).remove();
             }
 
             settings.mapContainer.append( menu );
@@ -472,17 +498,22 @@ function mapDirections( map, markers, settings ) {
             handleDirectionOptions( event );
         }
 
+        //Style the context menu correspondingly to the click coordinates on the map
         function styleContextMenu( menu, mapContainer, event ) {
+            //If enough is the distance between the ends of the container - display the context menu on the right side of the click
             menu.css( {
                 'left': event.pixel.x,
                 'top': event.pixel.y
             } );
 
+            //If the click was near the right end of the map and the distance between the edge of the container is less than
+            //the width of the context menu - show it on the left side of the click
             if( menu.width() + event.pixel.x > mapContainer.width() ) {
                 menu.css( {
                     'left': event.pixel.x - menu.width()
                 } );
             }
+            //If the distance between the bottom end is less than the height of the context menu - show it on the uppre side of the click
             if( menu.height() + event.pixel.y > mapContainer.height() ) {
                 menu.css( {
                     'top': event.pixel.y - menu.height()
@@ -492,6 +523,10 @@ function mapDirections( map, markers, settings ) {
 
         function handleDirectionOptions( event ) {
 
+            //Reassign the reverse value of the variables "directionFrom" and "directionTo"
+            //so that on the next click the context menu will display the proper buttons.
+            //Increase the clicks counter and add the click event to a variable
+            //in order to be accessed later for an origin point of the route
             $( '#direction-to' ).on( 'click', function () {
                 settings.directionFrom = ! settings.directionFrom;
                 settings.directionTo = ! settings.directionTo;
@@ -499,12 +534,13 @@ function mapDirections( map, markers, settings ) {
                 settings.bothButtonsClicked++;
 
                 settings.newEndEvent = event;
-
                 handleRoute();
+
 
                 $( '#lb-gmaps-context-menu' ).remove();
             } );
 
+            //The same goes for this event listener, though here the event is the destination point
             $( '#direction-from' ).on( 'click',function () {
                 settings.directionFrom = ! settings.directionFrom;
                 settings.directionTo = ! settings.directionTo;
@@ -513,19 +549,25 @@ function mapDirections( map, markers, settings ) {
 
                 settings.newStartEvent = event;
 
-                handleRoute();
-
                 $( '#lb-gmaps-context-menu' ).remove();
             } );
 
+            //Clear all the data created by the previous route only if the the buttom "Directions From..." was not clicked,
+            //otherwise reverse the click and show the "Directions From..." option in the menu and if needed "Add waypoint"
             $( '#clear-directions' ).on( 'click', function ( e ) {
                 if( 0 === $( e.target ).siblings( '#direction-to' ).length ) {
                     settings.waypoints = [];
-                    settings.newMarkers.map( m => m.setMap( null ) );
                     if( settings.polyline ) {
                         settings.polyline.setMap( null );
                         settings.polyline = undefined;
                     }
+
+                    markers.map( m => {
+                        if( m.hasOwnProperty( 'isFromDirection' ) && ! isMarkerOriginOrDestination( m, settings.startEvent, settings.endEvent ) ) {
+                            m.setMap(null);
+                        }
+                    } );
+
                     if( settings.infowindow ) {
                         settings.infowindow.setMap( null );
                     }
@@ -544,6 +586,9 @@ function mapDirections( map, markers, settings ) {
                 $( '#lb-gmaps-context-menu' ).remove();
             } );
 
+            //Add waypoint to an object and pass them to the direction service to recalculate the route.
+            //Create waypoints duplicate array in order to add the "isMarker" property to prevent putting markers on
+            //already existing ones
             $( '#add-waypoint' ).on( 'click', function () {
                 settings.waypoints.push( {
                     location: event.latLng,
@@ -558,12 +603,26 @@ function mapDirections( map, markers, settings ) {
                 $( '#lb-gmaps-context-menu' ).remove();
             } );
 
+            $( '#remove-waypoint' ).on( 'click', function () {
+                var index = isMarkerInWaypoints( event, settings.waypointsDuplicate );
+                settings.waypoints = settings.waypoints.splice( i, 1 );
+                settings.waypointsDuplicate = settings.waypointsDuplicate.splice( i, 1 );
+
+                handleRoute( settings.waypoints );
+
+                $( '#lb-gmaps-context-menu' ).remove();
+            } );
+
+            //This handles the route options and draws the polyline of the route
+            //It can be executed by clicking "Direction From..." and "Direction To..." buttons consecutively, by adding a waypoint
+            //or by choosing from the different types of travelling modes which are "DRIVING", "BICYCLING", "TRANSIT" and "wALKING"
             function handleRoute( waypts, travelMode ) {
                 if( 2 === settings.bothButtonsClicked || waypts || travelMode ) {
                     if( ! travelMode ) {
                         travelMode = 'DRIVING';
                     }
 
+                    //If both buttons are clicked consecutively - erase data from an old route
                     if( 2 === settings.bothButtonsClicked ) {
                         settings.waypointsDuplicate = [];
                         settings.waypoints = [];
@@ -586,12 +645,24 @@ function mapDirections( map, markers, settings ) {
 
                     settings.directionsService.route( request , function( response, status ) {
                         if ( 'OK' === status ) {
+                            //--- Part 1 ---
+                            //Contrary to the actions taken on both buttons clicked here we delete the data on every successful route,
+                            //since we want new polyline and infowindow on every route update
                             if ( ! waypts || waypts && 0 === waypts.length) {
-                                settings.newMarkers.map( m => m.setMap( null ) );
+                                markers.map( m => {
+                                    m.latLng = m.position;
+                                    if( m.hasOwnProperty( 'isFromDirection' ) && ! isMarkerOriginOrDestination( m, settings.startEvent, settings.endEvent ) ) {
+                                        m.setMap(null);
+                                    }
+                                } );
                             }
 
                             if ( settings.polyline ) {
                                 settings.polyline.setMap( null );
+                            }
+
+                            if( settings.infowindow ) {
+                                settings.infowindow.setMap( null );
                             }
 
                             settings.polyline = new google.maps.Polyline( {
@@ -599,20 +670,32 @@ function mapDirections( map, markers, settings ) {
                                 strokeWeight: 0
                             } );
 
+                            //--- End of Part 1 ---
+
                             var bounds = new google.maps.LatLngBounds();
                             settings.directionsDisplay.setDirections( response );
 
+                            //The route legs are the pieces that construct a route from point A to point B
+                            //For example - A->A1->A1->B1->B1->B where the even positions are the route leg start_location
+                            //and the odd ones are the route leg end_location
                             var routeLegs = response['routes'][0]['legs'];
                             for ( var i = 0; i < routeLegs.length; i++ ) {
+                                // (1)If the "Direction From..." click event is not on a marker, then create one on it
                                 if ( 0 === i && ! settings.startEvent.isMarker && settings.options.routeMarkers ) {
+                                    routeLegs[i].start_location = settings.startEvent.latLng;
                                     createMarkerAtLeg(routeLegs[i], 'start');
                                 }
+                                // (1) the same applies here
                                 if ( routeLegs.length - 1 === i && ! settings.endEvent.isMarker && settings.options.routeMarkers ) {
+                                    routeLegs[i].end_location = settings.endEvent.latLng;
                                     createMarkerAtLeg(routeLegs[i], 'end');
                                 }
+                                // Create marker on each waypoint, only if it's not a maker
                                 if ( i !== 0 && i <= settings.waypointsDuplicate.length && ! settings.waypointsDuplicate[i - 1].isMarker  && settings.options.waypointsMarkers ) {
+                                    routeLegs[i].start_location = settings.waypointsDuplicate[ i - 1 ].location;
                                     createMarkerAtLeg(routeLegs[i], 'start');
                                 }
+                                // Add each route leg to the polyline which is going to be drawn later
                                 var steps = routeLegs[i].steps;
                                 for (var j = 0; j < steps.length; j++) {
                                     var nextSegment = steps[j].path;
@@ -646,18 +729,25 @@ function mapDirections( map, markers, settings ) {
                     } );
                     settings.bothButtonsClicked = 0;
 
+                    //This function allows us to create a marker at a waypoint defined by the user
                     function createMarkerAtLeg( routeLeg, type ) {
                         var info = routeLeg[ type + '_address' ].split( ', ' );
-                        var marker = new google.maps.Marker({
+                        var marker = new google.maps.Marker( {
                             map: map,
                             position: routeLeg[ type + '_location' ],
                             name: info[ info.length - 1 ] + ', ' + info[ info.length - 2 ],
                             content: routeLeg[ type + '_address' ]
-                        });
-                        settings.newMarkers.push( marker );
+                        } );
+                        marker.isFromDirection = true;
+                        markers.push( marker );
+                        google.maps.event.addListener( marker, 'rightclick', function () {
+                            this.isMarker = true;
+                            google.maps.event.trigger( map, 'rightclick', this);
+                        } );
                         displayInfoWindow( map, marker, false );
                     }
 
+                    //Handle each click on the different travelling modes
                     function directionsTypeClickEvent( ev ) {
                         $( '#lb-gmaps-directions-type' ).find( 'li' ).off( 'click' );
                         var travelMode = $( ev.currentTarget ).attr( 'id' ).toUpperCase();
@@ -678,12 +768,14 @@ function mapDirections( map, markers, settings ) {
                             totalDist += myroute.legs[ i ].distance.value;
                             totalTime += myroute.legs[ i ].duration.value;
                         }
+
                         if( settings.options.routeInfowindow ) {
                             putInfoWindowOnRoute( 50 );
                         }
 
                         totalDist = totalDist / 1000.;
 
+                        //This function allows us to get the click coordinates in pixels from lat and lng
                         function registerGetPointFromDistFunc() {
                             google.maps.Polygon.prototype.getPointAtDistance = function(metres) {
                                 // some awkward special cases
@@ -708,9 +800,9 @@ function mapDirections( map, markers, settings ) {
                             google.maps.Polyline.prototype.getPointAtDistance = google.maps.Polygon.prototype.getPointAtDistance;
                         }
 
+                        //Display an info window showing the distance of a route and the time it takes to be travelled
                         function putInfoWindowOnRoute( percentage ) {
                             var distance = ( percentage / 100 ) * totalDist;
-                            var time = ( ( percentage / 100 ) * totalTime / 60 ).toFixed( 2 );
                             if( settings.infowindow ) {
                                 settings.infowindow.setMap( null );
                             }
@@ -723,7 +815,17 @@ function mapDirections( map, markers, settings ) {
                                 TRANSIT: 'bus'
                             };
 
-                            settings.infowindow.setContent( ( totalDist / 1000 ).toFixed( 1 ) + " km<br>" + Math.ceil( totalTime / 60 ) + " mins " + '<i class="fa fa-'+ travelModes[ travelMode ] +'" aria-hidden="true"></i>' );
+                            //Convert travelling duration into hours or minutes respectively
+                            var timeUnit = '';
+                            if( totalTime > 3600 ) {
+                                totalTime = ( totalTime / 3600 ).toFixed( 1 );
+                                timeUnit = 'hours';
+                            } else {
+                                totalTime = Math.ceil( totalTime / 60 );
+                                timeUnit = 'mins';
+                            }
+
+                            settings.infowindow.setContent( ( totalDist / 1000 ).toFixed( 1 ) + " km<br>" + totalTime + " " + timeUnit + " " + '<i class="fa fa-'+ travelModes[ travelMode ] +'" aria-hidden="true"></i>' );
                             settings.infowindow.setPosition( settings.polyline.getPointAtDistance( distance ) );
 
                             settings.infowindow.open( map );
@@ -745,6 +847,7 @@ function mapDirections( map, markers, settings ) {
                         } else {
                             $( '#lb-gmaps-live-preview' ).append( '<div id="lb-gmaps-map-'+ type +'">' + message + '</div>' );
                         }
+                        //Remove message after three seconds
                         setTimeout( function () {
                             $( '#lb-gmaps-map-' + type ).remove();
                             $( '#lb-gmaps-directions-type' ).show().find( 'li' ).on( 'click', directionsTypeClickEvent );
@@ -758,6 +861,7 @@ function mapDirections( map, markers, settings ) {
     }
 }
 
+//Return an object containing the route setting such as markers on waypoints, info window on route...
 function parseDirectionsOptions( mapData ) {
     var obj = {
         directions: mapData.directions
@@ -770,6 +874,7 @@ function parseDirectionsOptions( mapData ) {
     return obj;
 }
 
+//Handle the searching field on the map on the one in the admin page
 function handleSearchingField( map ) {
 
     //Handle appearing animation
@@ -840,11 +945,38 @@ function getMapDirectionsDefaults( map ) {
         startEvent: undefined,
         endEvent: undefined,
         mapContainer: $( map.getDiv() ),
-        newMarkers: [],
         infowindow: undefined,
         waypoints: [],
         waypointsDuplicate: [],
         polyline: undefined,
         overlay: new google.maps.OverlayView
     }
+}
+
+//Dispatch tinyMCE from textarea in order to use it later
+function dispatchTinyMCE() {
+    if( tinymce.get('marker_description') ) {
+        tinymce.get('marker_description').remove();
+    }
+}
+
+function isMarkerOriginOrDestination( marker, startEvent, endEvent ) {
+    if( startEvent.hasOwnProperty( 'latLng' ) && endEvent.hasOwnProperty( 'latLng' ) ) {
+        return marker.latLng.lat() === startEvent.latLng.lat()
+            && marker.latLng.lng() === startEvent.latLng.lng()
+            || marker.latLng.lat() === endEvent.latLng.lat()
+            && marker.latLng.lng() === endEvent.latLng.lng();
+    }
+    return false;
+}
+
+//Check whether a marker is in the waypoints if true - return its index in the array
+function isMarkerInWaypoints( marker, waypoints ) {
+    for ( var i = 0; i < waypoints.length; i++ ) {
+        if( waypoints[ i ].location.lat() === marker.latLng.lat()
+            && waypoints[ i ].location.lng() === marker.latLng.lng() ) {
+            return i;
+        }
+    }
+    return false;
 }

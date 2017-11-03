@@ -6,6 +6,8 @@ function initMap() {
         post_id: post.ID
     };
 
+    //--- DB ----
+    //Handle database records
     if( null !== data.map && 'object' === typeof data.map ) {
         $( '#lb-gmaps-live-preview' ).css({height: data.map.height, width: data.map.width});
         var map = new google.maps.Map( document.getElementById( 'lb-gmaps-live-preview' ), parseMapData( data.map ) );
@@ -42,7 +44,9 @@ function initMap() {
             mapMarkers.push( marker );
         }
     }
+    //--- DB ---
 
+    //Use IIFEs in order to make changes to the variables set out of the function scope
     ( function ( map, mapAttributes, markers, mapMarkers, directionServiceOptions ) {
         postFormHandler( map, mapAttributes, markers, mapMarkers, directionServiceOptions );
     } )( map, mapAttributes, markers, mapMarkers, directionServiceOptions );
@@ -55,8 +59,10 @@ function initMap() {
 
     } );
 
+    //Save changes via AJAX since
     $( '#publish' ).on( 'click', function ( e ) {
-        e.preventDefault();
+        //Since sending the map object exceeds the maximum stack we have to create an object
+        //and copy only the important properties of the map
         mapAttributes.lat = map.getCenter().lat();
         mapAttributes.lng = map.getCenter().lng();
         mapAttributes.zoom = map.getZoom();
@@ -84,6 +90,7 @@ function initMap() {
     } );
 }
 
+//Validate marker creation/editing form
 function validateMarkerForm( markerForm ) {
     var formFields = markerForm.find( '.marker-field' );
     for ( var i = 0; i < formFields.length; i++ ) {
@@ -107,6 +114,7 @@ function validateMarkerForm( markerForm ) {
     }
 }
 
+//If there aren't any errors - enable the button
 function handleSaveButton(  ) {
     if( $( '#lb-gmaps-marker-form' ).find( '.marker-field' ).length === $( '.valid' ).length ) {
         $( '#save-button' ).prop( 'disabled', false );
@@ -115,6 +123,7 @@ function handleSaveButton(  ) {
     }
 }
 
+//Handle metabox fields
 function postFormHandler( map, mapAttributes, markers, mapMarkers, directionServiceOptions ) {
 
     mapDirections( map, mapMarkers, directionServiceOptions );
@@ -163,6 +172,7 @@ function postFormHandler( map, mapAttributes, markers, mapMarkers, directionServ
         }
     } );
 
+    //Handle the GMaps autocomple input search field
     autocomplete.bindTo('bounds', map);
     autocomplete.addListener( 'place_changed', function() {
         var place = autocomplete.getPlace();
@@ -382,7 +392,7 @@ function postFormHandler( map, mapAttributes, markers, mapMarkers, directionServ
 
     } );
 }
-
+//Allows the user to use arrow keys to adjust the height and width
 function handleDimensionField( selector, map, mapAttributes ) {
     $( selector ).on( 'keydown', function ( e ) {
         var val = parseInt( $( e.target ).val().replace( 'px', '' ).replace( '%', '' ) );
@@ -419,6 +429,7 @@ function handleDimensionField( selector, map, mapAttributes ) {
     } );
 }
 
+//Handle height and width fields
 function handleField( field ) {
     var fieldType = field.attr( 'id' ).indexOf( 'height' ) !== -1 ? 'height' : 'width';
     var btn = $( '#publish' );
@@ -440,6 +451,7 @@ function handleField( field ) {
     handleSubmitButtonErrors();
 }
 
+//Make sure the user does not create a map over 100% height and width and under 200px as well, since the map will be unusable
 function adjustDimensionsValue( field ) {
     if( field.val().match( /^[0-9]+%$/ ) ) {
         if( parseInt( field.val().replace( '%', '' ) ) > 100 ) {
@@ -452,7 +464,8 @@ function adjustDimensionsValue( field ) {
     }
 }
 
-function reorderFields(isMapOutBounds ) {
+//Executed on map dimensions change, reorders fields
+function reorderFields( isMapOutBounds ) {
     if( isMapOutBounds ) {
         $( '#lb-gmaps-fields' ).addClass( 'reordered-container' );
         $( '.lb-gmaps-form-group' ).each( ( i, el ) => {
@@ -467,10 +480,11 @@ function reorderFields(isMapOutBounds ) {
 
 }
 
+//Position map and fields accordingly to the width of the map
 function handleLivePreviewContainer() {
     var mapContainer = $( '#lb-gmaps-live-preview' );
     mapContainer.on( 'changeDimensions', function ( e ) {
-        if( mapContainer.width() > getMetaboxHalfWidth() ) {
+        if( mapContainer.width() > getMapPartOfMetabox() ) {
             reorderFields( true );
         } else {
             reorderFields();
@@ -528,7 +542,7 @@ function triggerDimensionsEvent() {
     }
 }
 
-function getMetaboxHalfWidth() {
+function getMapPartOfMetabox() {
     return Math.ceil( 0.6 * $( '#lb-gmaps-metabox:not(.postbox)' ).width() )
 }
 
@@ -541,6 +555,7 @@ function isJsonString( input ) {
     return true;
 }
 
+//If there aren't any errors - allow the user to save the map
 function handleSubmitButtonErrors() {
     var btn = $( '#publish' );
     if( 0 == btn.attr( 'errors-count' ) ) {
@@ -549,9 +564,3 @@ function handleSubmitButtonErrors() {
         btn.prop( 'disabled', 'disabled' );
     }
 }
-
-
-//TODO: FIX HEIGHT FIELD IN PERCENTS AND MARKER FORM STYLING
-//TODO: Enrich string translation
-//TODO: Add Comments
-//TODO: ADD SOME RESPONSIVE DESIGN

@@ -1,4 +1,5 @@
 function initMap() {
+    //If shortcode contains some data - process it
     if( typeof data !== 'undefined' ) {
         var markers = [];
         $( '#lb-gmaps-front-end' ).css( {width: data.map.width, height: data.map.height} );
