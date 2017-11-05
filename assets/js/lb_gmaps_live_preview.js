@@ -392,18 +392,19 @@ function postFormHandler( map, mapAttributes, markers, mapMarkers, directionServ
 
     } );
 }
+
 //Allows the user to use arrow keys to adjust the height and width
 function handleDimensionField( selector, map, mapAttributes ) {
     $( selector ).on( 'keydown', function ( e ) {
         var val = parseInt( $( e.target ).val().replace( 'px', '' ).replace( '%', '' ) );
-        if( 40 === e.keyCode ) {
+        if( 40 === e.keyCode && val > 0 ) {
             if( $( e.target ).val().match( /^[0-9]+px$/ ) ) {
                 $( e.target ).val( val - 1 + 'px' );
             } else if( $( e.target ).val().match( /^[0-9]+%$/ ) ) {
                 $( e.target ).val( val - 1 + '%' );
             }
         }
-        if( 38 === e.keyCode ) {
+        if( 38 === e.keyCode && val > 0 ) {
             if( $( e.target ).val().match( /^[0-9]+px$/ ) ) {
                 $( e.target ).val( val + 1 + 'px' );
             } else if ( $( e.target ).val().match( /^[0-9]+%$/ )  ) {
@@ -461,6 +462,8 @@ function adjustDimensionsValue( field ) {
     if( field.val().match( /^[0-9]+%$/ ) ) {
         if( parseInt( field.val().replace( '%', '' ) ) > 100 ) {
             field.val( '100%' );
+        } else if( parseInt( field.val().replace( '%', '' ) ) <= 10 ) {
+            field.val( '10%' );
         }
     } else if( field.val().match( /^[0-9]+px$/ ) ) {
         if( parseInt( field.val().replace( 'px', '' ) ) < 200 ) {
