@@ -18,6 +18,7 @@ class LB_GMaps {
 		$this->register_constants();
 		$this->register_helper();
 		$this->register_database_creation();
+		$this->register_plugin_deactivation();
 		$this->register_custom_post_type();
 		$this->register_metabox_handler();
 		$this->register_shortcode();
@@ -31,10 +32,29 @@ class LB_GMaps {
 		register_activation_hook( __FILE__, array( $this, 'create_database' ) );
 	}
 
+	private function register_plugin_deactivation() {
+		register_deactivation_hook( __FILE__, array( $this, 'deactivate_plugin' ) );
+	}
+
 	public function create_database() {
 		$this->get_helper()->include_file( 'includes/database-tools/lb_gmaps_database_handler' );
 		$lb_gmaps_database_handler = new LB_GMaps_Database_Handler();
 		$lb_gmaps_database_handler->create_tables();
+	}
+
+	public function deactivate_plugin() {
+		global $wpdb;
+
+		$lb_gmaps_tables = array(
+			$wpdb->prefix . 'lb_gmaps',
+			$wpdb->prefix . 'lb_gmaps_markers'
+		);
+
+		foreach( $lb_gmaps_tables as $table ){
+			$wpdb->query( "DROP TABLE IF EXISTS $table" );
+		}
+
+		flush_rewrite_rules();
 	}
 
 	private function register_custom_post_type() {
