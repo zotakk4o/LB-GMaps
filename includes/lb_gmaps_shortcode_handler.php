@@ -2,11 +2,19 @@
 
 class LB_GMaps_Shortcode_Handler {
 
+	/**
+	 * @var LB_GMaps_Database_Handler
+	 */
 	private $db_handler;
 
-	public function __construct() {
+	/**
+	 * @var LB_GMaps_Helper
+	 */
+	private $helper;
+
+	public function __construct( $helper ) {
 		$this->add_hooks();
-		$this->register_helper();
+		$this->set_helper( $helper );
 		$this->register_database_handler();
 	}
 
@@ -65,12 +73,7 @@ class LB_GMaps_Shortcode_Handler {
 	}
 
 	private function register_database_handler() {
-		LB_GMaps_Helper::include_file( 'includes/database-tools/lb_gmaps_database_handler' );
-	}
-
-	private function register_helper() {
-		include_once dirname( __FILE__ ) . '/lb_gmaps_helper.php';
-		$this->set_db_handler( new LB_GMaps_Database_Handler() );
+		$this->get_helper()->include_file( 'includes/database-tools/lb_gmaps_database_handler' );
 	}
 
 	/**
@@ -86,6 +89,22 @@ class LB_GMaps_Shortcode_Handler {
 	public function set_db_handler( $db_handler ) {
 		$this->db_handler = $db_handler;
 	}
+
+	/**
+	 * @return LB_GMaps_Helper
+	 */
+	public function get_helper() {
+		return $this->helper;
+	}
+
+	/**
+	 * @param LB_GMaps_Helper $helper
+	 */
+	public function set_helper( $helper ) {
+		$this->helper = $helper;
+	}
+
+
 
 	public function add_script_defer( $tag, $handle ) {
 		if( 'lb-google-map' !== $handle ) {

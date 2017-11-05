@@ -1,15 +1,24 @@
 <?php
 
 class LB_GMaps_Metabox_Handler {
+
+	/**
+	 * @var LB_GMaps_Ajaxer
+	 */
 	private $ajaxer;
+
+	/**
+	 * @var LB_GMaps_Helper
+	 */
+	private $helper;
 
 	private $map_data;
 
 	private $markers_data;
 
-	public function __construct() {
-		$this->register_helper();
+	public function __construct( $helper ) {
 		$this->add_hooks();
+		$this->set_helper( $helper );
 		$this->register_ajaxer();
 	}
 
@@ -19,6 +28,8 @@ class LB_GMaps_Metabox_Handler {
 
 		add_filter( 'script_loader_tag', array( $this, 'add_script_defer' ), 10, 2 );
 		add_filter( 'script_loader_tag', array( $this, 'add_script_async' ), 10, 2 );
+
+		add_filter( 'upload_dir', array( $this, 'custom_upload_dir' ) );
 	}
 
 	public function add_gmaps_meta_box() {
@@ -26,7 +37,6 @@ class LB_GMaps_Metabox_Handler {
 	}
 
 	public function display_meta_box() {
-		//LB_GMaps_Helper::include_file( 'includes/metabox/lb_gmaps_metabox' );
 		include_once LB_GMAPS_INCLUDES . "/metabox/lb_gmaps_metabox.php";
 	}
 
@@ -94,8 +104,8 @@ class LB_GMaps_Metabox_Handler {
 	}
 
 	public function register_ajaxer() {
-		LB_GMaps_Helper::include_file( 'includes/lb_gmaps_ajaxer' );
-		$this->set_ajaxer( new LB_GMaps_Ajaxer() );
+		$this->get_helper()->include_file( 'includes/lb_gmaps_ajaxer' );
+		$this->set_ajaxer( new LB_GMaps_Ajaxer( $this->get_helper() ) );
 	}
 
 	public function add_script_defer( $tag, $handle ) {
@@ -112,10 +122,6 @@ class LB_GMaps_Metabox_Handler {
 		}
 
 		return str_replace(' src', ' afer="afer" src', $tag );
-	}
-
-	private function register_helper() {
-		include_once dirname( __FILE__ ) . '/lb_gmaps_helper.php';
 	}
 
 	private function get_content_of_view( $view_type, $view_name ) {
@@ -135,6 +141,22 @@ class LB_GMaps_Metabox_Handler {
 	public function set_ajaxer( $ajaxer ) {
 		$this->ajaxer = $ajaxer;
 	}
+
+	/**
+	 * @return LB_GMaps_Helper
+	 */
+	public function get_helper() {
+		return $this->helper;
+	}
+
+	/**
+	 * @param LB_GMaps_Helper $helper
+	 */
+	public function set_helper( $helper ) {
+		$this->helper = $helper;
+	}
+
+
 
 	/**
 	 * @return string
@@ -198,5 +220,17 @@ class LB_GMaps_Metabox_Handler {
 			<?php endforeach; ?>
 		</select>
 		<?php
+	}
+
+	public function custom_upload_dir( $dir ) {
+		$mydir = '/lb-gmaps-media';
+
+		$dir['basedir'] = LB_GMAPS_INCLUDES;
+		$dir['baseurl'] = LB_GMAPS_INCLUDES_URL;
+		$dir['subdir'] = $mydir;
+		$dir['path'] = LB_GMAPS_INCLUDES . $mydir;
+		$dir['url'] = LB_GMAPS_INCLUDES_URL . $mydir;
+
+		return $dir;
 	}
 }

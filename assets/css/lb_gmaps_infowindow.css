@@ -1,19 +1,19 @@
 #lb-gmaps-live-preview .custom-gm-style-iw,
 #lb-gmaps-front-end .custom-gm-style-iw {
-    width: calc(100% + 5px) !important;
+    width: calc(100% + 50px) !important;
     top: 15px !important;
-    left: 0 !important;
+    left: -25px !important;
     background-color: #fff;
     box-shadow: 0 1px 6px rgba(178, 178, 178, 0.6);
     border: 1px solid #417DF1;
     border-radius: 2px 2px 10px 10px;
+    max-height: 200px;
 }
 
 #lb-gmaps-live-preview .custom-gm-style-iw div,
 #lb-gmaps-front-end .custom-gm-style-iw div {
     width: 100% !important;
     max-width: 100% !important;
-    text-align: center;
     overflow: hidden !important;
 }
 
@@ -24,6 +24,7 @@
 #lb-gmaps-marker-contaier #lb-gmaps-marker-name {
     font-family: 'Open Sans Condensed', sans-serif;
     width: 100% !important;
+    text-align: center;
     word-wrap: break-word;
     padding: 5px 0;
     background-color: #417DF1;
@@ -32,21 +33,34 @@
     border-radius: 2px 2px 0 0;
 }
 
-#lb-gmaps-marker-contaier #lb-gmaps-marker-description {
+#lb-gmaps-marker-contaier #lb-gmaps-marker-content,
+#lb-gmaps-marker-contaier #lb-gmaps-marker-media {
     font-size: 13px;
     line-height: 18px;
     font-weight: 400;
     padding: 0;
+    text-align: center;
+    display: inline-block;
     width: 100% !important;
     word-wrap: break-word;
-    margin-right: 1px;
-    max-height: 140px;
+    max-height: 150px;
     overflow-y: auto !important;
     overflow-x: hidden !important;
 }
 
-#lb-gmaps-marker-description p {
-    margin: 1em 0;
+#lb-gmaps-marker-contaier #lb-gmaps-marker-content.image-included {
+    width: 54% !important;
+}
+
+#lb-gmaps-marker-contaier #lb-gmaps-marker-media {
+    text-align: center;
+    width: calc( 45% - 2px ) !important;
+}
+
+#lb-gmaps-marker-media img {
+    max-width: 100%;
+    display: block;
+    margin: 3px 0;
 }
 
 #lb-gmaps-marker-contaier #lb-gmaps-marker-name p {
@@ -54,9 +68,14 @@
     margin: 0;
 }
 
-#lb-gmaps-marker-contaier #lb-gmaps-marker-description::-webkit-scrollbar {
-    width: 0;
-    background: transparent; /* make scrollbar transparent */
+#lb-gmaps-marker-contaier #lb-gmaps-marker-content::-webkit-scrollbar,
+#lb-gmaps-marker-contaier #lb-gmaps-marker-media::-webkit-scrollbar {
+    display: none;
+}
+
+#lb-gmaps-marker-contaier #lb-gmaps-marker-content,
+#lb-gmaps-marker-contaier #lb-gmaps-marker-media {
+    -ms-overflow-style: none;
 }
 
 #lb-gmaps-marker-gradient {
@@ -83,13 +102,12 @@
     left: calc( (100% - 80px) / 2 );
 }
 
-#lb-gmaps-marker-description span{
+#lb-gmaps-marker-content span{
     position: absolute;
     bottom: 0;
     margin: 0;
 }
-
-#lb-gmaps-marker-description span:hover,
+#lb-gmaps-marker-content span:hover,
 #transfer-buttons span:hover {
     cursor: pointer;
     color: #417DF1;
@@ -102,4 +120,3 @@
 #transfer-buttons span {
     margin: 0 15%;
 }
-

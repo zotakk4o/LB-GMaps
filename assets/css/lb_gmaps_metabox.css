@@ -12,13 +12,17 @@
     margin-bottom: 20px;
 }
 
-#lb-gmaps-metabox {
+#lb-gmaps-metabox,
+#lb-gmaps-fields,
+#lb-gmaps-map-types,
+#lb-gmaps-styles {
     -ms-overflow-style: none;
 }
 
 #lb-gmaps-fields::-webkit-scrollbar,
 #lb-gmaps-metabox::-webkit-scrollbar,
-#lb-gmaps-styles::-webkit-scrollbar {
+#lb-gmaps-styles::-webkit-scrollbar,
+#lb-gmaps-map-types::-webkit-scrollbar {
     display: none;
 }
 
@@ -149,10 +153,13 @@
 }
 
 #lb-gmaps-styles {
-    -ms-overflow-style: none;
     width: 95%;
     height: 200px;
     resize: none;
     padding: 10px;
     border-radius: 15px;
+}
+
+#lb-gmaps-metabox .hidden{
+    display: none;
 }

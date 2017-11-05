@@ -6,12 +6,14 @@
 		</label>
 	</div>
 	<div class="lb-gmaps-marker-form-group">
+		<input type="hidden" id="marker_media">
 		<button type="button" id="marker-upload-media" class="button">Add Media</button>
+		<button type="button" id="marker-clear-images" class="button hidden">Clear image selection</button>
 	</div>
 	<div class="lb-gmaps-marker-form-group description">
 		<label>
 			Description*
-			<textarea class="marker-field" id="marker_description"></textarea>
+			<textarea class="marker-field" id="marker_content"></textarea>
 		</label>
 	</div>
 	<div class="buttons-group">

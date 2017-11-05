@@ -1,7 +1,7 @@
 <?php
 
 class LB_GMaps_Helper {
-	public static function include_file( $file ) {
+	public function include_file( $file ) {
 		$folder = explode( '/', $file )[0];
 		$file_name = substr( $file, strpos( $file, '/' ), '1000' );
 

@@ -9,6 +9,12 @@ function styleInfowindow( infowindow ) {
         var iwOuter = $( '.custom-gm-style-iw' );
         iwOuter.parent().css({'width': iwOuter.css('width'), 'height': iwOuter.css('height') });
 
+        if( iwOuter.find( '#lb-gmaps-marker-content' ).height() > iwOuter.find( '#lb-gmaps-marker-media' ).height() ) {
+            iwOuter.find( '#lb-gmaps-marker-media' ).height( iwOuter.find( '#lb-gmaps-marker-content' ).height() );
+        } else {
+            iwOuter.find( '#lb-gmaps-marker-content' ).height( iwOuter.find( '#lb-gmaps-marker-media' ).height() );
+        }
+
         /* Since this div is in a position prior to .gm-div style-iw.
          * We use jQuery and create a iwBackground variable,
          * and took advantage of the existing reference .gm-style-iw for the previous div with .prev().
@@ -28,14 +34,9 @@ function styleInfowindow( infowindow ) {
         var iwCloseBtn = iwOuter.next();
 
         // Apply the desired effect to the close button
-        iwCloseBtn.css({opacity: '1', top: '0' , right: '-25px', border: '7px solid #417DF1', 'border-radius': '13px', 'box-shadow': '0 0 5px #3990B9'});
+        iwCloseBtn.css({opacity: '1', top: '0' , right: '-45px', border: '7px solid #417DF1', 'border-radius': '13px', 'box-shadow': '0 0 5px #3990B9'});
         if( data.frontEnd ) {
             iwCloseBtn.css( { width: '27px', height: '27px' } );
-        }
-
-        // If the content of infowindow not exceed the set maximum height, then the gradient is removed.
-        if($('#lb-gmaps-marker-description').height() < 140){
-            $('#lb-gmaps-marker-gradient ').css({display: 'none'});
         }
 
         // The API automatically applies 0.7 opacity to the button after the mouseout event. This function reverses this event to the desired value.
@@ -53,14 +54,19 @@ function showMarkerForm( map, marker, markers ) {
     };
 
     var markerForm = $( views.form );
-
-    if( marker.hasOwnProperty( 'name' ) ) {
-        markerForm.find( '#marker_name' ).val( marker.name );
+    var markerProps = [ 'name', 'content', 'media' ];
+    var empty = 0;
+    for ( var i = 0; i < markerProps.length; i++ ) {
+        if( marker.hasOwnProperty( markerProps[ i ] ) ) {
+            markerForm.find( '#marker_' + markerProps[ i ] ).val( marker[ markerProps[ i ] ] );
+            if( 'media' === markerProps[ i ] ) {
+                markerForm.find( '#marker-clear-images' ).removeClass( 'hidden' );
+            }
+        } else {
+            empty++;
+        }
     }
-    if( marker.hasOwnProperty( 'content' ) ) {
-        markerForm.find( '#marker_description' ).val( marker.content );
-    }
-    if( ! marker.hasOwnProperty( 'name' ) && ! marker.hasOwnProperty( 'content' ) ) {
+    if( 3 === empty ) {
         $( '<button type="button" class="marker-button" id="delete-button">Delete Marker</button>' ).insertAfter( markerForm.find( '#save-button' ) );
     }
 
@@ -89,6 +95,7 @@ function showMarkerForm( map, marker, markers ) {
         mapContainer.append( markerForm );
     }
 
+    //Handle "Add Media" button
     if ( $( '#marker-upload-media' ).length > 0 ) {
         if ( typeof wp !== 'undefined' && wp.media && wp.media.editor ) {
             $( document ).on( 'click', '#marker-upload-media', function( e ) {
@@ -96,13 +103,21 @@ function showMarkerForm( map, marker, markers ) {
                     this.window = wp.media({
                         title: 'Insert a marker photo',
                         library: {type: 'image'},
-                        multiple: false,
+                        multiple: true,
                         button: {text: 'Insert'}
                     });
 
                     var self = this; // Needed to retrieve our variable in the anonymous function below
                     this.window.on('select', function() {
-                        var first = self.window.state().get('selection').first().toJSON();
+                        var selected = self.window.state().get('selection').toJSON();
+                        var urls = [];
+                        for ( var i = 0; i < selected.length; i++ ) {
+                            if( selected[ i ].hasOwnProperty( 'url' ) ) {
+                                urls.push( selected[ i ].url );
+                            }
+                            $( '#marker_media' ).val( urls.join( ', ' ) );
+                        }
+                        $( '#marker-clear-images' ).show();
                     });
                 }
 
@@ -112,14 +127,19 @@ function showMarkerForm( map, marker, markers ) {
         }
     }
 
+    //Handle "Clear images selection" button
+    $( '#marker-clear-images' ).on( 'click', function ( e ) {
+        $( '#marker_media' ).val( '' );
+        $( e.target ).hide();
+    } );
     tinymce.init({
         theme: 'modern',
-        selector: '#marker_description',
+        selector: '#marker_content',
         resize: true,
         setup: function( ed ) {
             ed.on('blur', function() {
                 var content = ed.getContent();
-                var field = $( '#marker_description' );
+                var field = $( '#marker_content' );
                 if( '' === content ) {
                     field.removeClass( 'valid' );
                     if( ! field.siblings( '.marker-error' ).length ) {
@@ -144,8 +164,13 @@ function showMarkerForm( map, marker, markers ) {
 
     $( '#save-button' ).on( 'click', function () {
         dispatchTinyMCE();
-        markerObject.name = $.trim( $( '#marker_name' ).val() );
-        markerObject.content = $.trim( $( '#marker_description' ).val() );
+        if( markers && Array.isArray( markers ) && -1 !== markers.indexOf( markerObject.lat + markerObject.lng ) ) {
+            delete markers[ markerObject.lat + markerObject.lng ];
+        }
+
+        for ( var i = 0; i < markerProps.length; i++ ) {
+            markerObject[ markerProps[ i ] ] = $.trim( $( '#marker_' + markerProps[ i ] ).val() );
+        }
         markerForm.remove();
         $.ajax( {
             type: "POST",
@@ -157,8 +182,10 @@ function showMarkerForm( map, marker, markers ) {
             }
         } ).then( function (data) {
             if( data ) {
-                marker.name = markerObject.name;
-                marker.content = markerObject.content;
+                for ( var i = 0; i < markerProps.length; i++ ) {
+                    marker[ markerProps[ i ] ] = markerObject[ markerProps[ i ] ];
+                }
+                console.log(marker);
                 displayInfoWindow( map, marker, true );
             }
         } );
@@ -206,7 +233,7 @@ function addMarkerClickListener( map, marker, markers, content, infoWindow ) {
                                         select.append( '<option value="' + data[ i ].ID + '" >' + data[ i ].post_title + '</option>' );
                                     }
                                 }
-                                $( '#lb-gmaps-marker-description' ).hide();
+                                $( '#lb-gmaps-marker-content' ).hide();
                                 $( '#lb-gmaps-marker-contaier' ).append( fields );
 
                                 $( '#transfer' ).on( 'click', function () {
@@ -245,20 +272,20 @@ function addMarkerClickListener( map, marker, markers, content, infoWindow ) {
                                     function restoreMarkerAfterAjax() {
                                         setTimeout( function () {
                                             $( '#transfer-maps-container' ).remove();
-                                            $( '#lb-gmaps-marker-description' ).show();
+                                            $( '#lb-gmaps-marker-content' ).show();
                                         }, 2000 );
                                     }
                                 } );
                                 $( '#back' ).on( 'click', function () {
                                     $( '#transfer-maps-container' ).remove();
-                                    $( '#lb-gmaps-marker-description' ).show();
+                                    $( '#lb-gmaps-marker-content' ).show();
                                 } );
                             } else {
-                                $( '#lb-gmaps-marker-description' ).hide();
+                                $( '#lb-gmaps-marker-content' ).hide();
                                 $( '#lb-gmaps-marker-contaier' ).append( $( '<h2 id="lb-gmaps-not-found">No Maps Found.</h2>' ) );
                                 setTimeout( function () {
                                     $( '#lb-gmaps-not-found' ).remove();
-                                    $( '#lb-gmaps-marker-description' ).show();
+                                    $( '#lb-gmaps-marker-content' ).show();
                                 }, 2000 );
                             }
                         } );
@@ -313,20 +340,29 @@ function deleteMarker( marker, markers ) {
 function displayInfoWindow( map, marker, withButtons, markers ) {
     var content = $( views.infoBox );
     if( withButtons ) {
-        content.find( '#lb-gmaps-marker-description' ).append( '<span id="edit-lb-gmaps-marker">Edit</span>' );
-        content.find( '#lb-gmaps-marker-description' ).append( '<span id="transfer-lb-gmaps-marker">Duplicate to...</span>' );
-        content.find( '#lb-gmaps-marker-description' ).append( '<span id="delete-lb-gmaps-marker">Delete</span>' );
+        content.find( '#lb-gmaps-marker-content' ).append( '<span id="edit-lb-gmaps-marker">Edit</span>' );
+        content.find( '#lb-gmaps-marker-content' ).append( '<span id="transfer-lb-gmaps-marker">Duplicate to...</span>' );
+        content.find( '#lb-gmaps-marker-content' ).append( '<span id="delete-lb-gmaps-marker">Delete</span>' );
     }
     if( null !== marker.name && null !== marker.content && undefined !== marker.name && undefined !== marker.content) {
-        if( null !== marker.name ) {
+        if( null !== marker.name && undefined !== marker.name ) {
             content.find( '#lb-gmaps-marker-name p' ).text( marker.name );
         }
-        if( null !== marker.content ) {
-            content.find( '#lb-gmaps-marker-description p' ).html( marker.content );
+        if( null !== marker.content && undefined !== marker.content ) {
+            content.find( '#lb-gmaps-marker-content' ).append( marker.content );
+        }
+        if( null !== marker.media && undefined !== marker.media && '' !== marker.media ) {
+            var urls = marker.media.split( ', ' );
+            for ( var i = 0; i < urls.length; i++ ) {
+                content.find( '#lb-gmaps-marker-media' ).append( '<img src="'+ urls[ i ] +'" class="lb-gmaps-marker-image">' );
+            }
+            content.find( '#lb-gmaps-marker-content' ).addClass( 'image-included' );
+        } else {
+            content.find( '#lb-gmaps-marker-media' ).remove();
         }
         var textContent = content[0].outerHTML;
         var infoWindow = new google.maps.InfoWindow( {
-            maxWidth: 175
+            maxWidth: 200
         } );
 
         styleInfowindow( infoWindow );
@@ -385,27 +421,15 @@ function parseMapData( data ) {
 
 //Convert database data to an object, usable by JS
 function parseMarkerData( data ) {
-    var markerData = {
-        lat: parseFloat( data.lat ),
-        lng: parseFloat( data.lng )
-    };
-    if( undefined === data.lat && data.getPosition ) {
-        markerData.lat = data.getPosition().lat();
+    var markerData = {};
+    var keys = Object.keys( data );
+    for ( var i = 0; i < keys.length; i++ ) {
+        if( $.isNumeric( data[ keys[ i ] ] ) ) {
+            markerData[ keys[ i ] ] = parseFloat( data[ keys[ i ] ] );
+        } else if( null !== data[ keys[ i ] ] ) {
+            markerData[ keys[ i ] ] = data[ keys[ i ] ];
+        }
     }
-    if( undefined === data.lng && data.getPosition ) {
-        markerData.lng = data.getPosition().lng();
-    }
-    if( undefined === data.lng ) {
-
-    }
-    if( null !== data.name ) {
-        markerData.name = data.name;
-    }
-
-    if( null !== data.content ) {
-        markerData.content = data.content;
-    }
-
     return markerData;
 }
 
@@ -563,8 +587,8 @@ function mapDirections( map, markers, settings ) {
                     }
 
                     markers.map( m => {
-                        if( m.hasOwnProperty( 'isFromDirection' ) && ! isMarkerOriginOrDestination( m, settings.startEvent, settings.endEvent ) ) {
-                            m.setMap(null);
+                        if( m.hasOwnProperty( 'isFromDirection' ) ) {
+                            m.setMap( null );
                         }
                     } );
 
@@ -955,13 +979,13 @@ function getMapDirectionsDefaults( map ) {
 
 //Dispatch tinyMCE from textarea in order to use it later
 function dispatchTinyMCE() {
-    if( tinymce.get('marker_description') ) {
-        tinymce.get('marker_description').remove();
+    if( tinymce.get('marker_content') ) {
+        tinymce.get('marker_content').remove();
     }
 }
 
 function isMarkerOriginOrDestination( marker, startEvent, endEvent ) {
-    if( startEvent.hasOwnProperty( 'latLng' ) && endEvent.hasOwnProperty( 'latLng' ) ) {
+    if( startEvent.hasOwnProperty( 'latLng' ) && endEvent.hasOwnProperty( 'latLng' ) && marker.hasOwnProperty( 'latLng' ) ) {
         return marker.latLng.lat() === startEvent.latLng.lat()
             && marker.latLng.lng() === startEvent.latLng.lng()
             || marker.latLng.lat() === endEvent.latLng.lat()

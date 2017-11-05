@@ -1,5 +1,8 @@
 <?php
 
+if( ! defined( 'LB_GMAPS_INCLUDES_URL' ) ) {
+	define( 'LB_GMAPS_INCLUDES_URL', plugin_dir_url( __FILE__ ) );
+}
 if( ! defined( 'LB_GMAPS_INCLUDES' ) ) {
 	define( 'LB_GMAPS_INCLUDES', dirname( __FILE__ ) );
 }

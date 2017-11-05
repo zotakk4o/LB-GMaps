@@ -2,13 +2,20 @@
 
 class LB_GMaps_Post_Type {
 
-	public function __construct() {
+	/**
+	 * @var LB_GMaps_Helper
+	 */
+	private $helper;
+
+	public function __construct( $helper ) {
 		$this->add_hooks();
+		$this->set_helper( $helper );
 	}
 
 	private function add_hooks() {
 		if( ! post_type_exists( LB_GMAPS_POST_TYPE ) ) {
 			add_action( 'init', array( $this, 'register' ) );
+			add_action( 'deleted_post', array( $this, 'delete_data_permanently' ) );
 			add_action('manage_'.LB_GMAPS_POST_TYPE.'_posts_custom_column', array($this,'handle_custom_columns'), 10, 2);
 			add_filter('manage_'.LB_GMAPS_POST_TYPE.'_posts_columns', array($this,'add_new_columns'));
 		}
@@ -63,6 +70,29 @@ class LB_GMaps_Post_Type {
 		);
 		return array_merge($columns, $new_columns);
 	}
+
+	public function delete_data_permanently( $post_id ) {
+		$this->get_helper()->include_file( 'includes/database-tools/lb_gmaps_database_handler' );
+		$db_handler = new LB_GMaps_Database_Handler();
+
+		$db_handler->delete( $db_handler->get_maps_table_name(), array( 'post_id' => $post_id ) );
+		$db_handler->delete( $db_handler->get_markers_table_name(), array( 'post_id' => $post_id ) );
+	}
+
+	/**
+	 * @return LB_GMaps_Helper
+	 */
+	public function get_helper() {
+		return $this->helper;
+	}
+
+	/**
+	 * @param LB_GMaps_Helper $helper
+	 */
+	public function set_helper( $helper ) {
+		$this->helper = $helper;
+	}
+
 
 
 }
