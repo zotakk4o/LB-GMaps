@@ -74,6 +74,7 @@
 .lb-gmaps-marker-form-group input,
 .lb-gmaps-form-group input:not([type=checkbox]) {
     width: 95%;
+    padding: 5px;
 }
 
 .lb-gmaps-marker-form-group.description textarea {
@@ -107,7 +108,7 @@
     width: 75%;
 }
 
-#lb-gmaps-fields .map-dimensions {
+#lb-gmaps-fields .input-small {
     width: 30% !important;
 }
 

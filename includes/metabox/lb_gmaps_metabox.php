@@ -12,16 +12,21 @@
 			<label class="map-controls" for="lb-gmaps-map-full-width"><?php echo __( 'Full Width', 'lb-gmaps' ) ?></label>
 			<input type="checkbox" id="lb-gmaps-map-full-width" <?php if( is_object( $this->get_map_data() ) ) { echo checked( $this->get_map_data()->width,'100%' ); } ?>>
 		</div>
+		<div class="lb-gmaps-form-group">
+			<label for="lb-gmaps-map-zoom-range"><?php echo __( 'Zoom Range', 'lb-gmaps' ) ?></label>
+			<input type="text" class="input-small" id="lb-gmaps-map-zoom-range" value="<?php if( is_object( $this->get_map_data() ) ) echo $this->get_map_data()->zoom_range ?>">
+			<small class="lb-gmaps-tip"><?php echo __( 'Format: minimum - maximum E.g. 2 - 15', 'lb-gmaps' )?></small>
+		</div>
 		<div class="lb-gmaps-form-group dimensions">
 			<label for="lb-gmaps-map-width"><?php echo __( 'Width', 'lb-gmaps' ) ?></label>
-			<input type="text" class="map-dimensions" id="lb-gmaps-map-width" autocomplete="off" value="<?php echo is_object( $this->get_map_data() ) ? $this->get_map_data()->width : '60%' ?>">
+			<input type="text" class="input-small" id="lb-gmaps-map-width" autocomplete="off" value="<?php echo is_object( $this->get_map_data() ) ? $this->get_map_data()->width : '60%' ?>">
 			<small class="lb-gmaps-tip"><?php echo __( 'Width in percents 
 			                                            applies to current elements accordingly
 			                                            and will look differently on different devices.', 'lb-gmaps' )?></small>
 		</div>
 		<div class="lb-gmaps-form-group dimensions">
 			<label for="lb-gmaps-map-height"><?php echo __( 'Height', 'lb-gmaps' ) ?></label>
-			<input type="text" class="map-dimensions" id="lb-gmaps-map-height" autocomplete="off" value="<?php echo is_object( $this->get_map_data() ) ? $this->get_map_data()->height : '800px' ?>">
+			<input type="text" class="input-small" id="lb-gmaps-map-height" autocomplete="off" value="<?php echo is_object( $this->get_map_data() ) ? $this->get_map_data()->height : '800px' ?>">
 			<small class="lb-gmaps-tip"><?php echo __( 'Height in percents 
 			                                            applies to current elements accordingly 
 			                                            and will look differently on different devices.', 'lb-gmaps' )?></small>

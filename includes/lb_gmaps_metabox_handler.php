@@ -80,7 +80,9 @@ class LB_GMaps_Metabox_Handler {
 				'markerError'     => __( 'Some Maps didn\'t receive the marker successfully.', 'lb-gmaps' ),
 				'dimensionsError' => __( 'Missing "%" or "px"', 'lb-gmaps' ),
 				'transitMode'     => __( 'Public transport routing not available with waypoints', 'lb-gmaps' ),
-				'stylesError'     => __( 'Styles has to be in JSON format', 'lb-gmaps' )
+				'stylesError'     => __( 'Styles has to be in JSON format', 'lb-gmaps' ),
+				'zoomFormatError' => __( 'Zoom format not complied', 'lb-gmaps' ),
+				'zoomRangeError'  => __( 'The minimum zoom should be less than the maximum zoom', 'lb-gmaps' )
 			) );
 			wp_localize_script( 'lb-gmaps-helper-functions', 'helperViews',
 				array(

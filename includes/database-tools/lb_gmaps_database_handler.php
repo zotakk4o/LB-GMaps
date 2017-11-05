@@ -34,6 +34,7 @@ class LB_GMaps_Database_Handler {
 			lng VARCHAR(50) NOT NULL,
 			lat VARCHAR(50) NOT NULL,
 			zoom VARCHAR(50) NOT NULL,
+			zoom_range VARCHAR(50) NULL,
 			zoom_control VARCHAR(50) NULL,
 			gesture_handling VARCHAR(50) NULL,
 			scale_control VARCHAR(50) NULL,

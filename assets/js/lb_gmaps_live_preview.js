@@ -300,23 +300,53 @@ function postFormHandler( map, mapAttributes, markers, mapMarkers, directionServ
     $( '#lb-gmaps-styles' ).on( 'keyup', function ( e ) {
         clearInterval( window.stylesTextarea );
         window.stylesTextarea = setTimeout( function () {
-            var btn = $( '#publish' );
             var field = $( e.target );
             if( isJsonString( field.val() ) || '' === field.val() ) {
                 '' !== field.val() ? map.set( 'styles', JSON.parse( field.val() ) ) : map.set( 'styles', undefined );
                 if( field.siblings( '.lb-gmaps-error' ).length ) {
                     field.siblings( '.lb-gmaps-error' ).remove();
-                    btn.attr( 'errors-count', btn.attr( 'errors-count' ) * 1 - 1 );
                 }
             } else {
                 map.set( 'styles', undefined );
                 if( ! field.siblings( '.lb-gmaps-error' ).length ) {
-                    btn.attr( 'errors-count', btn.attr( 'errors-count' ) * 1 + 1 );
                     $( '<div class="lb-gmaps-error">' + messages.stylesError + '</div>' ).insertAfter( field.siblings( 'label' ) );
                 }
             }
             handleSubmitButtonErrors();
         }, 800 );
+    } );
+
+    //Handle Zoom Range
+    $( '#lb-gmaps-map-zoom-range' ).on( 'keyup', function ( e ) {
+        clearInterval( window.zoomRange );
+        window.zoomRange = setTimeout( function () {
+            var field = $( e.target );
+            if( field.val().match( /^\s*[0-9]+\s*-\s*[0-9]+\s*$/ ) ) {
+                var range = field.val().split( '-' ).map( r => parseInt( r.trim() ) );
+
+                if( field.siblings( '.lb-gmaps-error' ).length ) {
+                    field.parent().find( '.lb-gmaps-error' ).remove();
+                }
+                if( range[0] > range[1] ) {
+                    field.parent().append( '<div class="lb-gmaps-error">' + messages.zoomRangeError + '</div>' );
+                    map.setOptions( { minZoom: null, maxZoom: null } );
+                } else {
+                    field.parent().find( '.lb-gmaps-error' ).remove();
+                    map.setOptions( { minZoom: range[0], maxZoom: range[1] } );
+                    mapAttributes.zoom_range = field.val();
+                }
+            } else {
+                if( '' === field.val() ) {
+                    field.parent().find( '.lb-gmaps-error' ).remove();
+                } else if( ! field.siblings( '.lb-gmaps-error' ).length ) {
+                    field.parent().append( '<div class="lb-gmaps-error">' + messages.zoomFormatError + '</div>' );
+                } else {
+                    field.parent().find( '.lb-gmaps-error' ).text( messages.zoomFormatError );
+                }
+                map.setOptions( { minZoom: null, maxZoom: null } );
+            }
+            handleSubmitButtonErrors();
+        }, 500 )
     } );
 
     var controls = $( '#lb-gmaps-fields select:not( [multiple] )' );
@@ -434,24 +464,21 @@ function handleDimensionField( selector, map, mapAttributes ) {
 //Handle height and width fields
 function handleField( field ) {
     var fieldType = field.attr( 'id' ).indexOf( 'height' ) !== -1 ? 'height' : 'width';
-    var btn = $( '#publish' );
 
     if( field.val().match( /^[0-9]+(px|%)$/ ) ) {
         adjustDimensionsValue( field );
         $( '#lb-gmaps-live-preview' ).css( fieldType, field.val() );
         triggerDimensionsEvent();
-        if( field.siblings( '.lb-gmaps-dimensions-error' ).length ) {
-            btn.attr( 'errors-count', btn.attr( 'errors-count' ) * 1 - 1 );
-            field.siblings( '.lb-gmaps-dimensions-error' ).remove();
+        if( field.siblings( '.lb-gmaps-error' ).length ) {
+            field.siblings( '.lb-gmaps-error' ).remove();
         }
 
         if( $( '#lb-gmaps-fields.reordered-container' ).length ) {
             $( '#lb-gmaps-metabox' ).height( $( '#lb-gmaps-live-preview' ).height() + 100 + $( '#lb-gmaps-fields' ).height() );
         }
     } else {
-        if( ! field.siblings( '.lb-gmaps-dimensions-error' ).length ) {
-            field.parent().append( '<div class="lb-gmaps-dimensions-error lb-gmaps-error">' + messages.dimensionsError + '</div>' );
-            btn.attr( 'errors-count', btn.attr( 'errors-count' ) * 1 + 1 );
+        if( ! field.siblings( '.lb-gmaps-error' ).length ) {
+            field.parent().append( '<div class="lb-gmaps-error">' + messages.dimensionsError + '</div>' );
         }
     }
     handleSubmitButtonErrors();
@@ -479,15 +506,13 @@ function reorderFields( isMapOutBounds ) {
         $( '.lb-gmaps-form-group' ).each( ( i, el ) => {
             $( el ).addClass( 'reordered-field' );
         } );
+        $( '#lb-gmaps-metabox' ).height( $( '#lb-gmaps-live-preview' ).height() + 100 + $( '#lb-gmaps-fields' ).height() );
     } else {
         $( '#lb-gmaps-fields' ).removeClass( 'reordered-container' );
         $( '.lb-gmaps-form-group' ).each( ( i, el ) => {
             $( el ).removeClass( 'reordered-field' );
         } );
         $( '#lb-gmaps-metabox' ).height( $( '#lb-gmaps-fields' ).height() + 80 );
-    }
-    if( $( '#lb-gmaps-fields.reordered-container' ).length ) {
-        $( '#lb-gmaps-metabox' ).height( $( '#lb-gmaps-live-preview' ).height() + 100 + $( '#lb-gmaps-fields' ).height() );
     }
 }
 
@@ -520,8 +545,6 @@ function attachDomReadyEvents() {
                 e.preventDefault();
             }
         } );
-
-        $( '#publish' ).attr( 'errors-count', 0 );
         triggerDimensionsEvent();
     } );
 }
@@ -569,9 +592,9 @@ function isJsonString( input ) {
 //If there aren't any errors - allow the user to save the map
 function handleSubmitButtonErrors() {
     var btn = $( '#publish' );
-    if( 0 == btn.attr( 'errors-count' ) ) {
-        btn.prop( 'disabled', '' );
-    } else {
+    if( $( '.lb-gmaps-error' ).length ) {
         btn.prop( 'disabled', 'disabled' );
+    } else {
+        btn.prop( 'disabled', '' );
     }
 }

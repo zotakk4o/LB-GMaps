@@ -408,10 +408,13 @@ function parseMapData( data ) {
                 jsKey = jsKey[0].toLowerCase() + jsKey.slice( 1 );
                 if( 'styles' === key ) {
                     mapData[ jsKey ] = JSON.parse( data[key].replace(/\\("|')/g, '$1' ) );
+                } else if ( 'zoom_range' === key ) {
+                    var range = data[ key ].split( '-' ).map( r => parseInt( r ) );
+                    mapData.minZoom = range[0];
+                    mapData.maxZoom = range[1];
                 } else {
                     mapData[ jsKey ] = data[ key ];
                 }
-
             }
         }
     }
