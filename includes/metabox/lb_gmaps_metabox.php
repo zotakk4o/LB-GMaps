@@ -14,14 +14,14 @@
 		</div>
 		<div class="lb-gmaps-form-group dimensions">
 			<label for="lb-gmaps-map-width"><?php echo __( 'Width', 'lb-gmaps' ) ?></label>
-			<input type="text" class="map-dimensions" id="lb-gmaps-map-width" value="<?php echo is_object( $this->get_map_data() ) ? $this->get_map_data()->width : '60%' ?>">
+			<input type="text" class="map-dimensions" id="lb-gmaps-map-width" autocomplete="off" value="<?php echo is_object( $this->get_map_data() ) ? $this->get_map_data()->width : '60%' ?>">
 			<small class="lb-gmaps-tip"><?php echo __( 'Width in percents 
 			                                            applies to current elements accordingly
 			                                            and will look differently on different devices.', 'lb-gmaps' )?></small>
 		</div>
 		<div class="lb-gmaps-form-group dimensions">
 			<label for="lb-gmaps-map-height"><?php echo __( 'Height', 'lb-gmaps' ) ?></label>
-			<input type="text" class="map-dimensions" id="lb-gmaps-map-height" value="<?php echo is_object( $this->get_map_data() ) ? $this->get_map_data()->height : '800px' ?>">
+			<input type="text" class="map-dimensions" id="lb-gmaps-map-height" autocomplete="off" value="<?php echo is_object( $this->get_map_data() ) ? $this->get_map_data()->height : '800px' ?>">
 			<small class="lb-gmaps-tip"><?php echo __( 'Height in percents 
 			                                            applies to current elements accordingly 
 			                                            and will look differently on different devices.', 'lb-gmaps' )?></small>

@@ -74,6 +74,7 @@ class LB_GMaps_Shortcode_Handler {
 
 	private function register_database_handler() {
 		$this->get_helper()->include_file( 'includes/database-tools/lb_gmaps_database_handler' );
+		$this->set_db_handler( new LB_GMaps_Database_Handler( $this->get_helper() ) );
 	}
 
 	/**

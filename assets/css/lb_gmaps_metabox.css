@@ -1,6 +1,6 @@
 #lb-gmaps-metabox:not(.postbox) {
     width: 100%;
-    min-height: 800px;
+    height: 800px
 }
 
 #lb-gmaps-fields {
@@ -117,6 +117,7 @@
     margin: 0;
     padding: 0;
     height: 800px;
+    margin-bottom: 20px;
     max-height: 100% !important;
     min-height: 200px !important;
     max-width: 100% !important;
@@ -162,4 +163,9 @@
 
 #lb-gmaps-metabox .hidden{
     display: none;
+}
+
+#lb-gmaps-not-found {
+    width: 100%;
+    text-align: center;
 }

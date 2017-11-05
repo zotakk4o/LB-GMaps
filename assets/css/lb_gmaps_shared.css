@@ -26,19 +26,21 @@ div.lb-gmaps-dimensions-error {
     position: absolute;
     color: black;
     background-color: white;
-    width: 175px;
+    width: 150px;
 }
 
 #lb-gmaps-context-menu #direction-options {
-    width: calc( 100% - 12px );
+    width: 100%;
     margin: 0;
     list-style-type: none;
 }
 
 #lb-gmaps-context-menu #direction-options li {
     width: 100%;
-    padding: 12px 0 12px 12px;
+    padding: 12px 0 12px 0;
     margin: 0;
+    font-size: 14px;
+    text-align: center;
 }
 
 #lb-gmaps-context-menu #direction-options li:hover {
@@ -73,7 +75,8 @@ div.lb-gmaps-dimensions-error {
     text-align: center;
     width: 20%;
     margin: 0 6px;
-    padding-top: 15px;
+    font-size: 14px;
+    margin-top: 25px;
     height: 100%;
 }
 

@@ -416,6 +416,7 @@ function handleDimensionField( selector, map, mapAttributes ) {
         clearTimeout( window.fieldHandling );
         window.fieldHandling = setTimeout( function() {
             var field = $( e.target );
+
             handleField( field );
 
             if( -1 !== field.attr( 'id' ).indexOf( 'height' ) ) {
@@ -441,6 +442,10 @@ function handleField( field ) {
         if( field.siblings( '.lb-gmaps-dimensions-error' ).length ) {
             btn.attr( 'errors-count', btn.attr( 'errors-count' ) * 1 - 1 );
             field.siblings( '.lb-gmaps-dimensions-error' ).remove();
+        }
+
+        if( $( '#lb-gmaps-fields.reordered-container' ).length ) {
+            $( '#lb-gmaps-metabox' ).height( $( '#lb-gmaps-live-preview' ).height() + 100 + $( '#lb-gmaps-fields' ).height() );
         }
     } else {
         if( ! field.siblings( '.lb-gmaps-dimensions-error' ).length ) {
@@ -476,8 +481,11 @@ function reorderFields( isMapOutBounds ) {
         $( '.lb-gmaps-form-group' ).each( ( i, el ) => {
             $( el ).removeClass( 'reordered-field' );
         } );
+        $( '#lb-gmaps-metabox' ).height( $( '#lb-gmaps-fields' ).height() + 80 );
     }
-
+    if( $( '#lb-gmaps-fields.reordered-container' ).length ) {
+        $( '#lb-gmaps-metabox' ).height( $( '#lb-gmaps-live-preview' ).height() + 100 + $( '#lb-gmaps-fields' ).height() );
+    }
 }
 
 //Position map and fields accordingly to the width of the map

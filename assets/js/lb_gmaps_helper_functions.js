@@ -185,7 +185,6 @@ function showMarkerForm( map, marker, markers ) {
                 for ( var i = 0; i < markerProps.length; i++ ) {
                     marker[ markerProps[ i ] ] = markerObject[ markerProps[ i ] ];
                 }
-                console.log(marker);
                 displayInfoWindow( map, marker, true );
             }
         } );
@@ -233,7 +232,8 @@ function addMarkerClickListener( map, marker, markers, content, infoWindow ) {
                                         select.append( '<option value="' + data[ i ].ID + '" >' + data[ i ].post_title + '</option>' );
                                     }
                                 }
-                                $( '#lb-gmaps-marker-content' ).hide();
+                                var oldHeight = $( '#lb-gmaps-marker-content' ).height();
+                                $( '#lb-gmaps-marker-content, #lb-gmaps-marker-media' ).hide().height( 0 );
                                 $( '#lb-gmaps-marker-contaier' ).append( fields );
 
                                 $( '#transfer' ).on( 'click', function () {
@@ -262,30 +262,31 @@ function addMarkerClickListener( map, marker, markers, content, infoWindow ) {
                                                     } else {
                                                         $( '#transfer-maps-container' ).empty().append( '<div class="lb-gmaps-error">' + messages.markerError + '</div>' );
                                                     }
-                                                    restoreMarkerAfterAjax();
+                                                    restoreMarkerAfterAjax( oldHeight );
                                                 } );
                                             }
                                         }
                                     }
 
                                     // Remove marker transfer dropdown list and show the description of the marker
-                                    function restoreMarkerAfterAjax() {
+                                    function restoreMarkerAfterAjax( oldHeight ) {
                                         setTimeout( function () {
                                             $( '#transfer-maps-container' ).remove();
-                                            $( '#lb-gmaps-marker-content' ).show();
+                                            $( '#lb-gmaps-marker-content, #lb-gmaps-marker-media' ).show().height( oldHeight );
                                         }, 2000 );
                                     }
                                 } );
                                 $( '#back' ).on( 'click', function () {
                                     $( '#transfer-maps-container' ).remove();
-                                    $( '#lb-gmaps-marker-content' ).show();
+                                    $( '#lb-gmaps-marker-content, #lb-gmaps-marker-media' ).show( oldHeight );
                                 } );
                             } else {
-                                $( '#lb-gmaps-marker-content' ).hide();
+                                var height = $( '#lb-gmaps-marker-content' ).height();
+                                $( '#lb-gmaps-marker-content, #lb-gmaps-marker-media' ).hide().height( 0 );
                                 $( '#lb-gmaps-marker-contaier' ).append( $( '<h2 id="lb-gmaps-not-found">No Maps Found.</h2>' ) );
                                 setTimeout( function () {
                                     $( '#lb-gmaps-not-found' ).remove();
-                                    $( '#lb-gmaps-marker-content' ).show();
+                                    $( '#lb-gmaps-marker-content, #lb-gmaps-marker-media' ).show().height( height );
                                 }, 2000 );
                             }
                         } );
@@ -422,12 +423,15 @@ function parseMapData( data ) {
 //Convert database data to an object, usable by JS
 function parseMarkerData( data ) {
     var markerData = {};
+    var validProperties = [ 'post_id', 'lng', 'lat', 'name', 'content', 'media' ];
     var keys = Object.keys( data );
     for ( var i = 0; i < keys.length; i++ ) {
-        if( $.isNumeric( data[ keys[ i ] ] ) ) {
-            markerData[ keys[ i ] ] = parseFloat( data[ keys[ i ] ] );
-        } else if( null !== data[ keys[ i ] ] ) {
-            markerData[ keys[ i ] ] = data[ keys[ i ] ];
+        if(  -1 !== validProperties.indexOf( keys[ i ] ) ) {
+            if( $.isNumeric( data[ keys[ i ] ] ) ) {
+                markerData[ keys[ i ] ] = parseFloat( data[ keys[ i ] ] );
+            } else if( null !== data[ keys[ i ] ]  ) {
+                markerData[ keys[ i ] ] = data[ keys[ i ] ];
+            }
         }
     }
     return markerData;
