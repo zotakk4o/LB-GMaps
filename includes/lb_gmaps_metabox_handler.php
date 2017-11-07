@@ -37,12 +37,11 @@ class LB_GMaps_Metabox_Handler {
 	}
 
 	public function display_meta_box() {
-		$settings_page = menu_page_url( 'lb-gmaps-settings' );
 	    if( ! empty( get_option( LB_GMAPS_API_KEY ) ) ) {
 		    include_once LB_GMAPS_INCLUDES . "/metabox/lb_gmaps_metabox.php";
 	    } else {
             ?>
-            <a href="<?php echo $settings_page ?>"><?php echo __( 'Go to settings page and add your API Key' ) ?></a>
+            <a href="<?php echo menu_page_url( 'lb-gmaps-settings' ) ?>"><?php echo __( 'Go to settings page and add your API Key' ) ?></a>
             <?php
 	    }
 
