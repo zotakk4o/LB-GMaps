@@ -54,6 +54,8 @@ class LB_GMaps {
 			$wpdb->query( "DROP TABLE IF EXISTS $table" );
 		}
 
+		delete_option( LB_GMAPS_API_KEY );
+
 		flush_rewrite_rules();
 	}
 
