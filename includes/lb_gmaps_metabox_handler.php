@@ -29,7 +29,17 @@ class LB_GMaps_Metabox_Handler {
 		add_filter( 'script_loader_tag', array( $this, 'add_script_defer' ), 10, 2 );
 		add_filter( 'script_loader_tag', array( $this, 'add_script_async' ), 10, 2 );
 
-		add_filter( 'upload_dir', array( $this, 'custom_upload_dir' ) );
+		add_filter( 'admin_init' , array( $this, 'add_upload_filter' ),  999 );
+	}
+
+	public function add_upload_filter() {
+		$referrer = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : '';
+		if( $referrer != '' ) {
+			$explode_1 = explode( 'post_type=' , $referrer );
+			if( isset( $explode_1[1] ) && $explode_1[1] === LB_GMAPS_POST_TYPE ) {
+				add_filter( 'upload_dir', array( $this, 'custom_upload_dir' ) );
+			}
+		}
 	}
 
 	public function add_gmaps_meta_box() {
