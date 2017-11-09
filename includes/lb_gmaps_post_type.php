@@ -35,7 +35,7 @@ class LB_GMaps_Post_Type {
 			'not_found' 		=> __('No LB GMap found','lb-gmaps'),
 			'not_found_in_trash'=> __('No LB GMap found in Trash','lb-gmaps'),
 			'parent_item_colon' => '',
-			'menu_name' => __('LB GMaps','dxcrm'),
+			'menu_name' => __('LB GMaps','lb-gmaps'),
 		);
 		$args = array(
 			'labels' 			=> $labels,
