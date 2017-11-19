@@ -33,13 +33,7 @@ class LB_GMaps_Metabox_Handler {
 	}
 
 	public function add_upload_filter() {
-		$referrer = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : '';
-		if( $referrer != '' ) {
-			$explode_1 = explode( 'post_type=' , $referrer );
-			if( isset( $explode_1[1] ) && $explode_1[1] === LB_GMAPS_POST_TYPE ) {
-				add_filter( 'upload_dir', array( $this, 'custom_upload_dir' ) );
-			}
-		}
+		add_filter( 'upload_dir', array( $this, 'custom_upload_dir' ) );
 	}
 
 	public function add_gmaps_meta_box() {
@@ -242,14 +236,18 @@ class LB_GMaps_Metabox_Handler {
 	}
 
 	public function custom_upload_dir( $dir ) {
-		$mydir = '/lb-gmaps-media';
+		$id = $_REQUEST['post_id'];
+		$post_type = get_post_type($id);
+		if( LB_GMAPS_POST_TYPE == $post_type ) {
+			$mydir = '/lb-gmaps-media';
 
-		$dir['basedir'] = LB_GMAPS_INCLUDES;
-		$dir['baseurl'] = LB_GMAPS_INCLUDES_URL;
-		$dir['subdir'] = $mydir;
-		$dir['path'] = LB_GMAPS_INCLUDES . $mydir;
-		$dir['url'] = LB_GMAPS_INCLUDES_URL . $mydir;
+			$dir['basedir'] = LB_GMAPS_INCLUDES;
+			$dir['baseurl'] = LB_GMAPS_INCLUDES_URL;
+			$dir['subdir'] = $mydir;
+			$dir['path'] = LB_GMAPS_INCLUDES . $mydir;
+			$dir['url'] = LB_GMAPS_INCLUDES_URL . $mydir;
 
+		}
 		return $dir;
 	}
 }
